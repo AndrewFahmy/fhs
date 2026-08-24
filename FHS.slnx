@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/FHS.Api/FHS.Api.csproj" />
+    <Project Path="backend/FHS.Chain/FHS.Chain.csproj" />
+  </Folder>
+  <Folder Name="/infra/">
+    <Project Path="infra/FHS.AppHost/FHS.AppHost.csproj" />
+    <Project Path="infra/FHS.ServiceDefaults/FHS.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>
