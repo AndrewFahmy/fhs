@@ -3,7 +3,7 @@ using FHS.Chain.Contracts;
 
 namespace FHS.Chain;
 
-public static class Chain
+public static class ChainFactory
 {
     public static ChainBuilder<TState> For<TState>()
         where TState : ChainState => new();

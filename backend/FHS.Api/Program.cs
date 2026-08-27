@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 {
     builder.AddServiceDefaults();
 
+    builder.Services.AddSingleton(TimeProvider.System);
+
     builder
         .Services.AddOpenTelemetry()
         .WithTracing(tracing => tracing.AddSource(ChainRunner.ActivitySourceName).AddNpgsql());
@@ -38,6 +40,7 @@ var app = builder.Build();
     app.UseAuthorization();
 
     app.MapDefaultEndpoints();
+    app.MapApiEndpoints();
 }
 
 app.Run();
