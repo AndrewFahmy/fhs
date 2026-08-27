@@ -14,10 +14,13 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.0" />
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.5.3-preview.1.26425.3" />
   </ItemGroup>
 
   <ItemGroup Label="Common">
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions"
+      Version="10.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer"
       Version="10.0.11" />
   </ItemGroup>
 
@@ -26,5 +29,8 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore"
+      Version="10.0.11" />
+    <PackageVersion Include="Npgsql.Opentelemetry" Version="10.0.3" />
   </ItemGroup>
 </Project>

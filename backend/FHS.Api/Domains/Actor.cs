@@ -1,5 +1,11 @@
 namespace FHS.Api.Domains;
 
+/// <summary>
+/// Whoever or whatever performed an action — today always a person mapped from a Keycloak
+/// subject, but deliberately not named <c>User</c>: automated inspection stations and system
+/// jobs raise defects too, and <c>User</c> already means <see cref="System.Security.Claims.ClaimsPrincipal"/>
+/// in this codebase (<c>HttpContext.User</c>, <c>ICurrentUser</c>).
+/// </summary>
 public sealed class Actor
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
