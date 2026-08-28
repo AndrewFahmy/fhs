@@ -7,4 +7,7 @@
     <Project Path="infra/FHS.AppHost/FHS.AppHost.csproj" />
     <Project Path="infra/FHS.ServiceDefaults/FHS.ServiceDefaults.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Fhs.ArchitectureTests/Fhs.ArchitectureTests.csproj" />
+  </Folder>
 </Solution>

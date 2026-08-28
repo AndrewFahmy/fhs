@@ -8,6 +8,7 @@ public static class ErrorExtensions
     public static IResult ToProblem(this Error error)
     {
         var extensions = new Dictionary<string, object?> { ["code"] = error.Code };
+
         if (error.Fields is { Count: > 0 })
             extensions["errors"] = error.Fields;
 

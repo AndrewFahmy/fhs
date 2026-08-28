@@ -4,7 +4,11 @@ namespace FHS.Chain;
 
 internal static class ChainWiring
 {
-    internal static string NameOf(Type stateType) => stateType.DeclaringType?.Name ?? stateType.Name;
+    internal static string NameOf(Type stateType) =>
+        stateType.DeclaringType?.Name
+        ?? (
+            stateType.Name.EndsWith("State", StringComparison.Ordinal) ? stateType.Name[..^5] : stateType.Name
+        );
 
     internal static void Verify(string name, IReadOnlyList<LinkDescriptor> links)
     {

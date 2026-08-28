@@ -1,3 +1,4 @@
+using System.Reflection;
 using FHS.Api.Data;
 using FHS.Api.Extensions;
 using FHS.Chain;
@@ -5,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+var assemblyReference = typeof(Program).Assembly;
 
 
 {
@@ -21,7 +23,8 @@ var builder = WebApplication.CreateBuilder(args);
     builder
         .Services.AddDbContexts(builder.Configuration, builder.Environment)
         .AddJwtAuthentication(builder.Configuration, builder.Environment)
-        .AddChain(typeof(Program).Assembly);
+        .AddValidationByAssembly(assemblyReference)
+        .AddChain(assemblyReference);
 }
 
 var app = builder.Build();

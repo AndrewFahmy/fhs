@@ -1,6 +1,9 @@
+using System.Reflection;
 using FHS.Api.Data;
 using FHS.Api.Interfaces;
+using FHS.Api.Links;
 using FHS.Api.Primitives;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +43,14 @@ public static class ServiceCollectionExtensions
                 .AddHttpContextAccessor()
                 .AddScoped<ICurrentUser, CurrentUser>()
                 .AddScoped<IActorDirectory, ActorDirectory>();
+
+            return services;
+        }
+
+        public IServiceCollection AddValidationByAssembly(Assembly assembly)
+        {
+            services.AddValidatorsFromAssembly(assembly);
+            services.AddScoped(typeof(ValidateRequestInput<>));
 
             return services;
         }
