@@ -21,14 +21,14 @@ public sealed class ActorConfiguration : IEntityTypeConfiguration<Actor>
         builder.HasData(
             new Actor
             {
-                Id = Guid.Parse("a5a5a5a5-0000-4000-8000-000000000001"),
-                SubjectId = "11111111-1111-4111-8111-111111111111",
+                Id = AppConstants.Data.LineOperatorActorId,
+                SubjectId = AppConstants.Data.LineOperatorSubjectId,
                 DisplayName = "Line Operator"
             },
             new Actor
             {
-                Id = Guid.Parse("a5a5a5a5-0000-4000-8000-000000000002"),
-                SubjectId = "22222222-2222-4222-8222-222222222222",
+                Id = AppConstants.Data.AdminActorId,
+                SubjectId = AppConstants.Data.AdminSubjectId,
                 DisplayName = "System Administrator",
             }
         );
