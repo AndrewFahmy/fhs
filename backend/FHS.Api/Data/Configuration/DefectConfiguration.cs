@@ -1,4 +1,4 @@
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +13,8 @@ public sealed class DefectConfiguration : IEntityTypeConfiguration<Defect>
 
         builder.Property(d => d.Description).HasMaxLength(AppConstants.Data.DefectDescriptionMaxLength);
         builder.Property(d => d.Resolution).HasMaxLength(AppConstants.Data.DefectResolutionMaxLength);
+
+        builder.Property(x => x.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
 
         builder
             .Property(d => d.Severity)

@@ -1,4 +1,4 @@
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +15,8 @@ public sealed class ActorConfiguration : IEntityTypeConfiguration<Actor>
         builder.HasIndex(a => a.SubjectId).IsUnique();
 
         builder.Property(a => a.DisplayName).HasMaxLength(AppConstants.Data.ActorDisplayNameMaxLength);
+
+        builder.Property(x => x.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasData(
             new Actor

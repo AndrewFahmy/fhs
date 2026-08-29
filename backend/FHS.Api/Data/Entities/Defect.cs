@@ -1,6 +1,6 @@
 using FHS.Api.Enums;
 
-namespace FHS.Api.Domains;
+namespace FHS.Api.Data.Entities;
 
 public sealed class Defect
 {
@@ -17,4 +17,10 @@ public sealed class Defect
     public string? Resolution { get; set; }
     public Guid? ResolvedBy { get; set; }
     public DateTimeOffset? ResolvedAt { get; set; }
+
+    /// <summary>
+    /// Postgres' system <c>xmin</c> column, used as an optimistic concurrency token.
+    /// Maintained by the database; never assigned by the application.
+    /// </summary>
+    public uint Version { get; private set; }
 }

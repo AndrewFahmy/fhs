@@ -1,6 +1,6 @@
 using FHS.Api.Enums;
 
-namespace FHS.Api.Domains;
+namespace FHS.Api.Data.Entities;
 
 public sealed class ErrorCode
 {
@@ -13,4 +13,10 @@ public sealed class ErrorCode
     public required Severity Severity { get; init; }
 
     public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Postgres' system <c>xmin</c> column, used as an optimistic concurrency token.
+    /// Maintained by the database; never assigned by the application.
+    /// </summary>
+    public uint Version { get; private set; }
 }

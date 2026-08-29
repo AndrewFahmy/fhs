@@ -1,4 +1,4 @@
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,5 +15,7 @@ public sealed class StationConfiguration : IEntityTypeConfiguration<Station>
         builder.HasIndex(s => s.Code).IsUnique();
 
         builder.Property(s => s.Name).HasMaxLength(AppConstants.Data.StationNameMaxLength);
+
+        builder.Property(x => x.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
     }
 }

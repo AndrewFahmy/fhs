@@ -1,4 +1,4 @@
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +15,8 @@ public sealed class ErrorCodeConfiguration : IEntityTypeConfiguration<ErrorCode>
         builder.HasIndex(e => e.Code).IsUnique();
 
         builder.Property(e => e.Description).HasMaxLength(AppConstants.Data.ErrorCodeDescriptionMaxLength);
+
+        builder.Property(x => x.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
 
         builder
             .Property(e => e.Severity)
