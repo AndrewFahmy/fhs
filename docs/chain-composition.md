@@ -1,21 +1,27 @@
 # Chain Composition — FHS Architecture (v1)
 
-> Status: **kernel built (2026-08-23). This is the v1 scope.** FHS is a proof of concept whose primary
-> purpose is to find out whether this technique holds up under real features. v1 deliberately builds the
-> smallest kernel that can answer that question — roughly **half** the surface of the original design.
+> Status: **v1 built and running (2026-08-29).** FHS is a proof of concept whose primary purpose is to find
+> out whether this technique holds up under real features. v1 deliberately builds the smallest kernel that
+> can answer that question — roughly **half** the surface of the original design.
 >
-> `FHS.Chain` now exists and compiles. **This document has been reconciled against the code that was
-> actually written**, which departs from the original v1 proposal in three places — two chain kinds
-> instead of one (§7), a runner that rethrows instead of swallowing (§6), and no scope creation in the
-> runner (§6). Where the code and this document disagreed, the code won and the prose was rewritten;
-> §12 records which day-one assumptions that settled.
+> The kernel, the foundation, two features (`CreateDefect`, `ResolveDefect`) and seven architecture tests
+> exist, and the API has been run end to end against Postgres and Keycloak under Aspire. **All four of §12's
+> load-bearing assumptions are settled** — the contravariant conversions the whole global-link idea rests on
+> do work, at compile time and at run time.
+>
+> **This document is reconciled against the code that was actually written**, and the code has won every
+> disagreement. It departs from the original v1 proposal in eight places: two chain kinds instead of one
+> (§7), a runner that rethrows instead of swallowing (§6), no scope creation in the runner (§6), shape
+> validation as the first *link* rather than an endpoint filter (Rule 7), a command/query `DbContext` split
+> (§6), no-tracking reads with explicit writes (Rule 14), optimistic concurrency on every mutable entity
+> (§6), and flat State types with `IEndpoint` registration instead of a nested feature class (Rule 12, §9).
 >
 > The complete design, including everything cut below, is preserved in
 > [`chain-composition-full.md`](./chain-composition-full.md). Read this document to build; read that one
 > to understand where the pattern is headed. §14 lists every remaining deferral and the reason for it.
 >
-> Nothing above the kernel is built yet. §13 holds the criteria for keeping or abandoning the approach,
-> to be reviewed once roughly ten endpoints exist.
+> §13 holds the criteria for keeping or abandoning the approach, to be reviewed once roughly ten endpoints
+> exist. Two do.
 
 ---
 
@@ -24,7 +30,7 @@
 **FHS (Fault Handling System)** logs and tracks quality faults from a production plant:
 
 | Concept | Meaning |
-|---|---|
+| --- | --- |
 | **Defect** | A fault caught internally, before the product leaves the plant |
 | **Escape** | A fault that reached the customer — an internal control failed |
 | **Station** | A position on the production line where a defect is detected or caused |
@@ -92,14 +98,15 @@ Chain Composition delivers that by having each feature declare an ordered list o
 are shared across features; some belong to that feature alone.
 
 ```csharp
-static readonly Chain<State> Handle = Chain.For<State>()
-    .Link<ResolveActor>()          // shared
-    .Link<LoadStation>()           // this feature
-    .Link<EnsureStationActive>()   // this feature
-    .Link<ClassifyDefect>()        // this feature
-    .Link<RaiseDefect>()           // this feature
-    .Link<RecordDomainEvents>()    // shared
-    .Link<SaveChanges>()           // shared — commit boundary
+private static readonly Chain<CreateDefectState, CreateDefectResponse> Handle = ChainFactory
+    .For<CreateDefectState, CreateDefectResponse>()
+    .Link<ValidateRequest<CreateDefectRequest>>()  // shared
+    .Link<ResolveActor>()                          // shared
+    .Link<LoadAndEnsureStationExistence>()         // this feature
+    .Link<ClassifyDefect>()                        // this feature
+    .Link<RaiseDefect>()                           // this feature
+    .Link<RecordDomainEvents>()                    // shared
+    .Link<SaveChanges>()                           // shared — commit boundary
     .Build();
 ```
 
@@ -169,13 +176,13 @@ attributes on the links that participate in a hand-off.
 ## 3. What this is, and what it is not
 
 **It is** a feature-scoped application of Pipes-and-Filters with Railway-Oriented error handling. That
-combination has plenty of precedent — Elixir's `Plug`, Ruby's `interactor` gem, Spring Batch — so the
+combination has plenty of precedent — Elixir's `Plug`, Ruby's `inter-actor` gem, Spring Batch — so the
 failure modes are known and documented here rather than discovered later.
 
 **It is not:**
 
 | Not this | Because |
-|---|---|
+| --- | --- |
 | A CI/CD pipeline | Unrelated. This is why the words *pipeline*, *stage* and *job* are banned in §4. |
 | A workflow engine | **No durability, no persistence, no resume-after-crash, no compensation.** A chain lives and dies inside one HTTP request. If a feature needs durable orchestration it needs Temporal or Elsa, not this. |
 | MediatR pipeline behaviors | Those are cross-cutting only and identical for every request. The interesting half here is the *per-feature* sequence, which behaviors cannot express. |
@@ -189,7 +196,7 @@ readable declaration list for a `Send()` call that jumps somewhere unnamed. It a
 ## 4. Vocabulary
 
 | Term | Meaning |
-|---|---|
+| --- | --- |
 | **Chain** | The ordered list of links a feature declares. One per feature. |
 | **Link** | One unit of work in that list. |
 | **State** | The typed object carried through the chain, holding the request and everything links produce. |
@@ -240,8 +247,11 @@ public sealed class ResolveActor(ICurrentUser user, IActorDirectory directory) :
 {
     public async ValueTask<LinkResult> RunAsync(IHasActor state, CancellationToken ct)
     {
-        var actor = await directory.FindAsync(user.Id, ct);
-        if (actor is null) return LinkResult.Fail(Errors.UnknownActor(user.Id));
+        if (user.SubjectId is not { Length: > 0 } subjectId)
+            return LinkResult.Fail(Errors.Unauthenticated());
+
+        var actor = await directory.FindAsync(subjectId, ct);
+        if (actor is null) return LinkResult.Fail(Errors.UnknownActor(subjectId));
 
         state.Actor = actor;
         return LinkResult.Continue;
@@ -255,11 +265,11 @@ touches `Actor` and nothing else.
 **2. Local and global links coexist in one declaration list.**
 
 ```csharp
-public sealed class LoadStation(FhsDbContext db) : ILink<CreateDefect.State>   // local: sees everything
-public sealed class ResolveActor(...)            : ILink<IHasActor>            // global: sees one field
+public sealed class LoadStation(FhsCommandDbContext db) : ILink<CreateDefectState>  // local: sees everything
+public sealed class ResolveActor(...)                   : ILink<IHasActor>          // global: one field
 ```
 
-Both satisfy `where TLink : ILink<TState>` when the builder is over `CreateDefect.State`. The endpoint
+Both satisfy `where TLink : ILink<TState>` when the builder is over `CreateDefectState`. The endpoint
 declaration reads uniformly; the coupling difference is visible only in each link's own signature, which
 is exactly where it belongs.
 
@@ -300,12 +310,12 @@ cannot check (§2).
 So links state it directly, with `nameof`:
 
 ```csharp
-[Produces(nameof(CreateDefect.State.Station))]
-public sealed class LoadStation(FhsDbContext db) : ILink<CreateDefect.State>
+[Produces(nameof(CreateDefectState.Station))]
+public sealed class LoadAndEnsureStationExistence(FhsCommandDbContext db) : ILink<CreateDefectState>
 
-[Requires(nameof(CreateDefect.State.Station))]
-[Produces(nameof(CreateDefect.State.Classification))]
-public sealed class ClassifyDefect(IErrorCodeCatalog catalog) : ILink<CreateDefect.State>
+[Requires(nameof(CreateDefectState.Station))]
+[Produces(nameof(CreateDefectState.Classification))]
+public sealed class ClassifyDefect(FhsCommandDbContext db) : ILink<CreateDefectState>
 ```
 
 **Global links use the same attributes**, naming the property on their capability interface:
@@ -345,13 +355,14 @@ foreach (var link in links)
 }
 ```
 
-`name` comes from `typeof(TState).DeclaringType?.Name` — `CreateDefect.State` yields `"CreateDefect"`,
-free, because Rule 12 already requires every feature to declare its own nested State.
+`name` comes from `ChainWiring.NameOf(typeof(TState))`, which takes `DeclaringType?.Name` when the State is
+nested and otherwise strips a trailing `"State"` from the type name. Both routes yield `"CreateDefect"`, so
+the flat naming the code settled on (Rule 12) costs nothing here.
 
 Two things fall out of that loop:
 
 - **Mutual dependencies are caught.** If two links each require what the other produces, whichever runs
-  first fails on an unproduced requirement.
+  first fails on an un-produced requirement.
 - **Rule 4 is enforced** — two links producing the same field in one chain is caught in the same pass.
 
 One wart, stated plainly: because the throw happens in a static field initializer, .NET wraps it in a
@@ -442,7 +453,7 @@ scope.
 
 > **Registration requirement: `ChainRunner` is registered scoped**, and so is every link. Registering the
 > runner as a singleton captures the root provider and reintroduces exactly the split-`DbContext` bug this
-> avoids. `AddChainComposition` (§7) is what guarantees this, and it is the reason that method is part of
+> avoids. `AddChain` (§7) is what guarantees this, and it is the reason that method is part of
 > the kernel rather than a line in `Program.cs`.
 
 ### The commit boundary
@@ -458,7 +469,7 @@ response for an operation that persisted.** Hence Rule 10:
 > **Nothing that can fail follows the saving link.**
 
 | Segment | If it fails |
-|---|---|
+| --- | --- |
 | any `.Link<>()` before the save | Nothing persisted, error response |
 | the saving `.Link<>()` | Nothing persisted (EF's implicit transaction), error response |
 | a post-save `.Link<>()` | **Must have no `Fail` path** — see below |
@@ -485,7 +496,7 @@ That enqueue hands off to a background service. Which one depends on a single qu
 lost?**
 
 | | In-memory `Channel<T>` → hosted service | Outbox row → background reader |
-|---|---|---|
+| --- | --- | --- |
 | Durability | Lost on shutdown or crash | Commits in the same transaction as the data |
 | Latency | Microseconds — the reader wakes on write | The poll interval — seconds |
 | Backstop on loss | The cache TTL | None needed |
@@ -499,17 +510,25 @@ must survive a restart goes through the channel.
 what breaks at N instances is that evicting one instance's L1 leaves the other N−1 stale. That is fixed by
 a **pub/sub broadcast** — never a work queue, where exactly one consumer would win and the rest would stay
 stale, making the problem strictly worse than before scaling out. `HybridCache` may already do this through
-its own backplane, in which case none of it is hand-written. Confirm that before building it.
+its own back-plane, in which case none of it is hand-written. Confirm that before building it.
 
 `SaveChanges` itself is a **shared** link and needs nothing from State at all, because EF is already
 tracking what earlier links added or modified:
 
 ```csharp
-public sealed class SaveChanges(FhsDbContext db) : ILink<ChainState>
+public sealed class SaveChanges(FhsCommandDbContext db) : ILink<ChainState>
 {
     public async ValueTask<LinkResult> RunAsync(ChainState state, CancellationToken ct)
     {
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return LinkResult.Fail(Errors.ConcurrencyConflict());
+        }
+
         return LinkResult.Continue;
     }
 }
@@ -517,6 +536,27 @@ public sealed class SaveChanges(FhsDbContext db) : ILink<ChainState>
 
 Targeting the `ChainState` base means every State satisfies it, so one class serves every feature — the
 capability approach at its cleanest, with a state surface of zero.
+
+The `catch` is deliberately narrow. A concurrency conflict is a **business outcome** — someone else changed
+the row — so it becomes a `409`, not a 500. `DbUpdateException` (foreign key, length, unique) is a *bug*
+that validation or a business-rule link should have caught, so it keeps going to the exception handler.
+
+### Two DbContexts
+
+Persistence is split: **`FhsCommandDbContext` for writes, `FhsQueryDbContext` (no change tracking) for
+plain query endpoints.** The boundary is the same one Rule 1 already draws — chains are the command side,
+plain handlers are the query side:
+
+> **Links always take `FhsCommandDbContext`. `FhsQueryDbContext` is for plain GET endpoints only.**
+
+The two are separate connections, so nothing inside one chain may mix them. Loading an entity through the
+query context and mutating it in a later link would leave `SaveChanges` on the command context with
+nothing to write, and the update would vanish with no error.
+
+Only the command context owns migrations. The query context has no design-time factory, which makes it
+un-migratable by construction — both map the same entities, so a second migration history would collide.
+Health checks follow **connection strings, not contexts**: one shared string means one check today, and two
+the day the query context points at a read replica.
 
 This is also why the shared link is named `RecordDomainEvents` and not `DispatchDomainEvents`. It records
 events as outbox rows *before* the save, so they commit atomically with the data; actual dispatch happens
@@ -564,7 +604,7 @@ This document originally specified **one** chain kind. `Chain<TState>` would ser
 value-producing feature would let its endpoint read the value straight off the `State` it had just
 constructed. The argument for cutting the second kind was cost: two state bases, two chain types, two
 builders, two runner overloads, `Result` and `Result<T>`, two `MapChain` overloads — **six parallel
-pairs, for one behaviour.**
+pairs, for one behavior.**
 
 **The kernel that was built has both kinds, and the cost estimate turned out to be wrong.** The pairs are
 not parallel; they are related by inheritance, so the second kind is additive rather than duplicative:
@@ -658,27 +698,30 @@ the richer span tagging, and it is accepted. **The cap is now ~300.** If it grow
 is being pushed past its fit — see the kernel-size row in §13.
 
 | Type | File | Role | LOC |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `ILink<in TState>` | `Contracts/ILink\`.cs` | The one unit contract | 8 |
 | `ChainState`, `ChainState<TResult>` | `Contracts/ChainState*.cs` | Constraint anchor; `Produce()` and the guarded `Result` | 33 |
 | `LinkResult`, `LinkOutcome` | `Primitives/`, `Enums/` | `Continue` / `Done` / `Fail(Error)` | 30 |
 | `Chain<TState>`, `Chain<TState, TResult>` | `Chain\`.cs` | Immutable descriptor array, `Name`, `Describe()` | 25 |
 | `LinkDescriptor` | `LinkDescriptor.cs` | `Type`, `Name`, `Requires[]`, `Produces[]` | 28 |
-| `Chain.For<…>()` | `ChainFactory.cs` | Builder entry point for both kinds | 13 |
+| `ChainFactory.For<…>()` | `ChainFactory.cs` | Builder entry point for both kinds | 13 |
 | `ChainBuilder<TState>`, `ChainBuilder<TState, TResult>` | `Builder/` | `.Link<T>()`, `.Build()` | 52 |
 | `ChainWiring` | `ChainWiring.cs` | The order check and the chain's name; shared by both builders | 32 |
 | `ChainRunner` | `ChainRunner.cs` | The flat loop, span tagging, the two `RunAsync` overloads | 88 |
 | `RequiresAttribute`, `ProducesAttribute` | `Attributes/` | The hand-off declarations | 14 |
 | `ChainWiringException`, `ChainResultException` | `Exceptions/` | Their two failure modes | 6 |
 | `Result`, `Result<T>`, `Error`, `FieldError`, `ErrorKind` | `Primitives/`, `Enums/` | Hand-rolled, no dependency | 82 |
-| **`AddChainComposition(assembly)`** | **not written yet** | Scan `ILink<>` implementations, register them and the runner **scoped** | ~20 |
+| `AddChain(assembly)` | `ChainRegistration.cs` | Scan `ILink<>` implementations, register them and the runner **scoped** | 28 |
 
 `LinkDescriptor` carries `Type`, `Name`, `Requires[]`, `Produces[]` — the attributes are read once, by
-reflection, inside `.Link<T>()`, which runs at static-field-initializer time, not per request.
+reflection, inside `.Link<T>()`, which runs at static-field-initializer time, not per request. Its `Name`
+renders a generic link as `ValidateRequest<CreateDefectRequest>` rather than the raw ``ValidateRequest`1``,
+so spans and `Describe()` stay readable.
 
-`AddChainComposition` is the one row of this table that does not exist yet. It is not optional
-bookkeeping: it is what enforces the scoped-lifetime requirement from §6, and without it nothing resolves
-`descriptor.Type` at all.
+`AddChain` is not optional bookkeeping: it is what enforces the scoped-lifetime requirement from §6, and
+without it nothing resolves `descriptor.Type` at all. **It deliberately skips open generics**, so a generic
+link such as `ValidateRequest<>` needs its own `services.AddScoped(typeof(ValidateRequest<>))` — a gap with
+no compile-time signal, which is why §11 has a test for it.
 
 ---
 
@@ -708,18 +751,31 @@ These are the part that actually protects maintainability. The pattern degrades 
 6. **Links are stateless.** Dependencies through the primary constructor, no mutable fields. They are
    resolved per request but must not rely on it.
 7. **Do not absorb framework concerns.** Authentication and authorization → endpoint filters and policies.
-   Request *shape* validation → an endpoint filter, before the chain runs. Rate limiting → middleware.
-   Links carry **business** sequence only. Wanting to make everything a link is the main way this bloats.
-   Validation is two steps, and the split is by *what the rule needs*:
-   - **Shape** ("StationCode is required", "Description ≤ 500 chars"). Runs as an endpoint filter, reports
-     every failure at once. .NET 10 ships built-in minimal API validation over DataAnnotations
-     (`builder.Services.AddValidation()`) — **confirm whether that covers v1 before adding FluentValidation
-     and a custom filter.**
+   Rate limiting → middleware. Links carry **business** sequence only. Wanting to make everything a link is
+   the main way this bloats. Validation is two steps, and the split is by *what the rule needs*:
+   - **Shape** ("StationCode is required", "Description ≤ 500 chars"). Runs as the **first link** in the
+     chain, `ValidateRequest<TRequest>`, and reports every failure at once.
    - **Business state** ("that station is decommissioned", "that code is already in use"). Needs loaded
-     data, so it cannot run before the chain, and it belongs in a link.
+     data, so it belongs in a link further down.
 
-   Whichever shape validator is used, **keep the validators synchronous and pure.** A database call inside
-   a validator hides a business rule from the chain declaration, which is the entire point of the design.
+   **This document originally put shape validation in an endpoint filter, and the code does not.** The
+   reason is the error shape: the kernel already has `Error.Fields`/`FieldError`, and `ToProblem()` already
+   emits them as `extensions["errors"]`, but *nothing produced them*. A validation link fills that in, so a
+   shape failure and a business failure reach the client as the same `ProblemDetails` shape. A filter would
+   have produced a second, different one. The cost is that a rejected request still pays for `State`
+   construction and one link resolution, which is small enough to accept.
+
+   This also settles the open question about .NET 10's built-in `AddValidation()`: it is filter-based and
+   exposes no `IValidator<T>` to call from a link, so choosing the link means **FluentValidation**.
+
+   `ValidateRequest<TRequest> : ILink<IHasRequest<TRequest>>` is the sole consumer of the `IHasRequest`
+   capability, and it is generic — which `AddChain` **will not register**, because the scan skips open
+   generics and the closed form never appears in the assembly. It needs an explicit
+   `services.AddScoped(typeof(ValidateRequest<>))`. The architecture test in §11 exists partly to catch
+   that.
+
+   Keep validators synchronous and pure. A database call inside a validator hides a business rule from the
+   chain declaration, which is the entire point of the design.
 8. **Capabilities carry what the chain produces; ambient dependencies come from DI.** Clock, current user,
    tenant and configuration are constructor-injected — they are not State. This is what keeps the
    capability set small enough to memorize.
@@ -731,21 +787,49 @@ These are the part that actually protects maintainability. The pattern degrades 
     worst outcome available: a persisted write and an error response. A post-save link that only *enqueues*
     is therefore permitted — an in-memory `TryWrite` has no failure mode that should reach the client — and
     one that performs the work itself is not. See §6 for the two tiers the enqueue hands off to.
-11. **Fold existence checks into the link that loads.** `EnsureStationExists` followed by `LoadStation` is
-    two round trips to learn one fact — the load *is* the check, returning `Fail(NotFound)` when it comes
-    back empty. What remains for business-rule links is the checks with no downstream product: uniqueness,
-    cross-field state rules, quota checks. Those earn their own links, and seeing `EnsureCodeNotDuplicated`
-    in the declaration tells you the rule exists without opening anything.
-12. **Every feature declares its own State**, nested in the feature class. It may inherit from
-    `ChainState`, but **the base stays free of domain fields.** Every field a feature uses is declared,
-    with its real type, in that feature's file. The moment a shared base carries `Station`, the property
-    that makes a slice readable in isolation is gone. (The nesting is also where the chain gets its name —
-    §5.)
+11. **Fold existence and state checks into the link that loads.** `EnsureStationExists` followed by
+    `LoadStation` is two round trips to learn one fact — the load *is* the check, returning `Fail(NotFound)`
+    when it comes back empty. **The as-built code goes further and folds the state check in too**:
+    `LoadAndEnsureStationExistence` returns `404` when the station is missing and `409` when it is
+    decommissioned, rather than splitting into `LoadStation` + `EnsureStationActive`. The reason is
+    consistency — `ClassifyDefect` had always done load-and-check in one link, and having Station do it in
+    two was an inconsistency with no justification.
+
+    **Know what that costs**: "the station must be active" no longer has its own line in the declaration,
+    so §2's promise that the list tells you the feature's rules is weaker by one rule. Watch it as a §13
+    signal. Checks with *no* downstream product — uniqueness, cross-field rules, quotas — still earn their
+    own link, and seeing `EnsureCodeNotDuplicated` in the declaration is exactly the value at stake.
+12. **Every feature declares its own State**, and **the base stays free of domain fields.** Every field a
+    feature uses is declared, with its real type, in that feature's own file. The moment a shared base
+    carries `Station`, the property that makes a slice readable in isolation is gone.
+
+    The original design nested `State` inside a `CreateDefect` class, which is where `ChainWiring.NameOf`
+    got the chain's name from (`typeof(TState).DeclaringType`). **The as-built code uses flat type names**
+    — `CreateDefectState`, `CreateDefectRequest` — in separate files. `NameOf` therefore falls back to
+    stripping a trailing `"State"` from the type name, which yields the same `"CreateDefect"` in spans and
+    wiring errors.
 13. **Keep the declaration statically analyzable.** A chain is always a static literal fluent chain in a
     field initializer — never built at runtime, never conditionally, never in a loop. And a link never
-    passes `state` to another method: read it, write it, do not hand it off. The first half is load-bearing
-    *today*: it is what makes the `Build()` check fire at startup. Both are free to follow now and
+    passes `state` to another method: read it, write it, do not hand it off. Both are free to follow now,
     expensive to retrofit, and they are what keeps the optional analyzer buildable later (§14).
+
+    **Correction to an earlier claim:** this document said the `Build()` check "fires at startup." With the
+    `IEndpoint` pattern it does not. `MapEndpoint` never reads the static `Handle` field — only the request
+    delegate does — so under `beforeFieldInit` the type initializer, and therefore the wiring check, runs on
+    the **first request to that endpoint**. The architecture test in §11 reads every chain field by
+    reflection, which is what turns the check back into a build-time guard.
+14. **Reads are `AsNoTracking()`; writes are explicit.** A link that changes something calls `db.Update(…)`
+    or `db.Add(…)` by name. Relying on the change tracker to persist a mutation is action at a distance —
+    the same "go trace it in another file" cost this design exists to remove — and load-then-map-then-
+    `Update` against a tracked instance throws *"another instance with the same key is already being
+    tracked"*, which no-tracking reads make unreachable.
+
+    Two consequences. `db.Update` marks **every** property modified, so the statement rewrites the whole
+    row; that is safe only because every mutable entity carries an optimistic concurrency token (§6). And
+    **`ExecuteUpdate`/`ExecuteDelete` are banned inside a link** — they execute immediately against the
+    connection and do not participate in `SaveChanges`, so they would commit outside the boundary, before
+    `RecordDomainEvents` has written its outbox rows. That breaks Rule 10 and the outbox's atomicity, and it
+    looks like it worked.
 
 **Escape hatch, stated plainly:** if a feature fights the chain, write a plain handler and move on. That
 is a permitted outcome, not a defeat. Record it — a growing count of escapes is the most useful signal
@@ -756,54 +840,66 @@ this document can produce (§13).
 ## 9. Anatomy of a slice
 
 ```text
-src/FHS.Api/Features/Defects/CreateDefect/
-    CreateDefect.cs          ← endpoint, State, and the chain declaration
-    LoadStation.cs
-    EnsureStationActive.cs
-    ClassifyDefect.cs
-    RaiseDefect.cs
+backend/FHS.Api/Features/Defects/
+    DefectErrors.cs                      ← Error factory shared across the Defects area
+    CreateDefect/
+        Endpoint.cs                      ← the chain declaration and the route
+        State.cs
+        Models.cs                        ← Request, Response, value objects, domain events
+        Validator.cs                     ← FluentValidation rules for the Request
+        Links/
+            LoadAndEnsureStationExistence.cs
+            ClassifyDefect.cs
+            RaiseDefect.cs
 ```
 
-Shared links live in `src/FHS.Api/Shared/Links/`, capabilities in `src/FHS.Api/Shared/Capabilities/`.
+Shared links live in `backend/FHS.Api/Links/`, capabilities in `backend/FHS.Api/Interfaces/`.
+
+Endpoints implement `IEndpoint`, a one-member interface with a `static abstract MapEndpoint`, and
+`app.MapApiEndpoints()` reflects over the assembly to call each one. That is the *registration* third of the
+deferred `MapChain` (§14) — the cheap third — leaving route shape, binding and result mapping as a plain
+minimal API delegate, which is why the other two thirds were not worth building.
 
 ### Example A — a feature that returns a value
 
 ```csharp
-public static class CreateDefect
+// State.cs
+public sealed class CreateDefectState(CreateDefectRequest request)
+    : ChainState<CreateDefectResponse>,
+        IHasRequest<CreateDefectRequest>, IHasActor, IRaisesEvents
 {
-    public sealed record Request(string StationCode, string ErrorCode, string Description);
-    public sealed record Response(Guid DefectId);
+    public CreateDefectRequest Request { get; } = request;
+    public Actor Actor { get; set; } = null!;            // written by ResolveActor
+    public List<IDomainEvent> Events { get; } = [];
 
-    public sealed class State(Request request)
-        : ChainState<Response>, IHasRequest<Request>, IHasActor, IRaisesEvents
-    {
-        public Request Request { get; } = request;
-        public Actor Actor { get; set; } = null!;            // written by ResolveActor
-        public List<IDomainEvent> Events { get; } = [];
+    public Station? Station { get; set; }                // written by LoadAndEnsureStationExistence
+    public Classification? Classification { get; set; }  // written by ClassifyDefect
+}
 
-        public Station? Station { get; set; }                 // written by LoadStation
-        public Classification? Classification { get; set; }   // written by ClassifyDefect
-    }
-
-    static readonly Chain<State, Response> Handle = Chain.For<State, Response>()
-        .Link<ResolveActor>()             // shared   ILink<IHasActor>
-        .Link<LoadStation>()              // local    ILink<State>       — also the FK check
-        .Link<EnsureStationActive>()      // local    ILink<State>       — business rule
-        .Link<ClassifyDefect>()           // local    ILink<State>
-        .Link<RaiseDefect>()              // local    ILink<State>       — calls state.Produce(...)
-        .Link<RecordDomainEvents>()       // shared   ILink<IRaisesEvents>
-        .Link<SaveChanges>()              // shared   ILink<ChainState>  — commit boundary, last
+// Endpoint.cs
+public sealed class CreateDefectEndpoint : IEndpoint
+{
+    private static readonly Chain<CreateDefectState, CreateDefectResponse> Handle = ChainFactory
+        .For<CreateDefectState, CreateDefectResponse>()
+        .Link<ValidateRequest<CreateDefectRequest>>()   // shared  ILink<IHasRequest<T>>  — shape rules
+        .Link<ResolveActor>()                           // shared  ILink<IHasActor>
+        .Link<LoadAndEnsureStationExistence>()          // local   — 404 missing, 409 decommissioned
+        .Link<ClassifyDefect>()                         // local
+        .Link<RaiseDefect>()                            // local   — calls state.Produce(...)
+        .Link<RecordDomainEvents>()                     // shared  ILink<IRaisesEvents>
+        .Link<SaveChanges>()                            // shared  ILink<ChainState> — commit, last
         .Build();
 
-    public static void Map(IEndpointRouteBuilder app) =>
+    public static void MapEndpoint(IEndpointRouteBuilder app) =>
         app.MapPost("/defects", async (
-                Request request, ChainRunner runner, CancellationToken ct) =>
+                CreateDefectRequest request, ChainRunner runner, CancellationToken ct) =>
             {
-                var result = await runner.RunAsync(Handle, new State(request), ct);
+                var result = await runner.RunAsync(Handle, new CreateDefectState(request), ct);
                 return result.ToCreated(r => $"/defects/{r.DefectId}");
             })
-           .WithName(nameof(CreateDefect))
-           .WithTags("Defects");
+           .WithName("Create Defect")
+           .WithTags("Defects")
+           .RequireAuthorization();
 }
 ```
 
@@ -813,10 +909,10 @@ never needs to cross a link boundary. Had it been a field it would have needed `
 declaration and a `!` at the endpoint — the second chain kind (§7) removes all three. **Only put a value
 on `State` when a later link reads it.**
 
-Read the declaration and you have the feature: who the actor is, that the station must exist and be
-active, that the defect gets classified and raised, and where it commits. Note what is *absent*: no
-separate FK-existence link (Rule 11 — `LoadStation` is the check), no shape-validation link (that is the
-endpoint filter), no transaction ceremony, and no try/catch.
+Read the declaration and you have the feature: that the request is well-formed, who the actor is, that the
+station must exist and be usable, that the defect gets classified and raised, and where it commits. Note
+what is *absent*: no separate FK-existence link (Rule 11 — the load is the check), no transaction ceremony,
+and no try/catch.
 
 The endpoint returns `IResult`; tighten to `Results<Created<Response>, ProblemHttpResult>` when OpenAPI
 output starts to matter.
@@ -824,17 +920,22 @@ output starts to matter.
 A local link, for contrast — narrow, one field, one reason to fail:
 
 ```csharp
-[Produces(nameof(CreateDefect.State.Station))]
-public sealed class LoadStation(FhsDbContext db) : ILink<CreateDefect.State>
+[Produces(nameof(CreateDefectState.Station))]
+public sealed class LoadAndEnsureStationExistence(FhsCommandDbContext db) : ILink<CreateDefectState>
 {
-    public async ValueTask<LinkResult> RunAsync(CreateDefect.State state, CancellationToken ct)
+    public async ValueTask<LinkResult> RunAsync(CreateDefectState state, CancellationToken ct)
     {
-        state.Station = await db.Stations
-            .SingleOrDefaultAsync(s => s.Code == state.Request.StationCode, ct);
+        var code = state.Request.StationCode;
 
-        return state.Station is null
-            ? LinkResult.Fail(Errors.StationNotFound(state.Request.StationCode))
-            : LinkResult.Continue;
+        var station = await db.Set<Station>()
+            .AsNoTracking()
+            .SingleOrDefaultAsync(s => s.Code == code, ct);
+
+        if (station is null) return LinkResult.Fail(DefectErrors.StationNotFound(code));
+        if (!station.IsActive) return LinkResult.Fail(DefectErrors.StationInactive(code));
+
+        state.Station = station;
+        return LinkResult.Continue;
     }
 }
 ```
@@ -842,41 +943,47 @@ public sealed class LoadStation(FhsDbContext db) : ILink<CreateDefect.State>
 It reads `state.Request`, which is set by the constructor and always present, so that needs no
 declaration. It produces `Station`, which a later link consumes — so that does.
 
+`db.Set<Station>()` rather than `db.Stations`: the contexts declare **no `DbSet` properties**, which makes
+`IEntityTypeConfiguration<T>` the single registration path for the model instead of two. The trade is that
+the context is no longer a readable inventory of the schema, and that EF names tables after the entity type
+rather than a pluralised set name — hence `station`, `defect`, `error_code`, singular and snake_cased.
+
 ### Example B — a feature that returns nothing, reusing the same shared links
 
 ```csharp
-public static class ResolveDefect
+public sealed class ResolveDefectState(Guid defectId, ResolveDefectRequest request)
+    : ChainState, IHasRequest<ResolveDefectRequest>, IHasActor, IRaisesEvents
 {
-    public sealed record Request(string Resolution);
+    public Guid DefectId { get; } = defectId;
+    public ResolveDefectRequest Request { get; } = request;
+    public Actor Actor { get; set; } = null!;
+    public List<IDomainEvent> Events { get; } = [];
 
-    public sealed class State(Guid defectId, Request request)
-        : ChainState, IHasRequest<Request>, IHasActor, IRaisesEvents
-    {
-        public Guid DefectId { get; } = defectId;
-        public Request Request { get; } = request;
-        public Actor Actor { get; set; } = null!;
-        public List<IDomainEvent> Events { get; } = [];
+    public Defect? Defect { get; set; }        // written by LoadAndEnsureDefectIsOpen
+}
 
-        public Defect? Defect { get; set; }                   // written by LoadDefect
-    }
-
-    static readonly Chain<State> Handle = Chain.For<State>()
-        .Link<ResolveActor>()             // shared — identical class, unmodified
-        .Link<LoadDefect>()               // local
-        .Link<MarkResolved>()             // local
-        .Link<RecordDomainEvents>()       // shared — identical class, unmodified
-        .Link<SaveChanges>()              // shared — identical class, unmodified
+public sealed class ResolveDefectEndpoint : IEndpoint
+{
+    private static readonly Chain<ResolveDefectState> Handle = ChainFactory
+        .For<ResolveDefectState>()
+        .Link<ValidateRequest<ResolveDefectRequest>>()  // shared — same generic link, new type argument
+        .Link<ResolveActor>()                           // shared — identical class, unmodified
+        .Link<LoadAndEnsureDefectIsOpen>()              // local
+        .Link<MarkResolved>()                           // local  — calls db.Update(...)
+        .Link<RecordDomainEvents>()                     // shared — identical class, unmodified
+        .Link<SaveChanges>()                            // shared — identical class, unmodified
         .Build();
 
-    public static void Map(IEndpointRouteBuilder app) =>
+    public static void MapEndpoint(IEndpointRouteBuilder app) =>
         app.MapPost("/defects/{id:guid}/resolution", async (
-                Guid id, Request request, ChainRunner runner, CancellationToken ct) =>
+                Guid id, ResolveDefectRequest request, ChainRunner runner, CancellationToken ct) =>
             {
-                var result = await runner.RunAsync(Handle, new State(id, request), ct);
+                var result = await runner.RunAsync(Handle, new ResolveDefectState(id, request), ct);
                 return result.ToNoContent();
             })
-           .WithName(nameof(ResolveDefect))
-           .WithTags("Defects");
+           .WithName("Resolve Defect")
+           .WithTags("Defects")
+           .RequireAuthorization();
 }
 ```
 
@@ -884,21 +991,45 @@ public static class ResolveDefect
 `Chain<State>`, and the runner's non-generic overload returns `Result`. `CreateDefect` derives from
 `ChainState<Response>` and gets `Result<Response>`. **The declaration lists are otherwise identical in
 form**, and the choice between the two kinds is made in exactly one place — the State's base class —
-which then propagates through `Chain.For<…>()` by inference.
+which then propagates through `ChainFactory.For<…>()` by inference.
 
-`ResolveActor`, `RecordDomainEvents` and `SaveChanges` appear in both chains unchanged. That is the payoff
-of §5's single link contract, and it is the specific thing the POC should confirm early.
+**This is the claim the POC set out to test, and it held.** `ValidateRequest<T>`, `ResolveActor`,
+`RecordDomainEvents` and `SaveChanges` — four of the six links — appear in both chains with no changes at
+all, across two different chain kinds. That is the payoff of §5's single link contract.
 
-Note the three levels of coupling visible in these declarations, each chosen by the link's own signature
-rather than by where it sits in the list: `SaveChanges` needs nothing (`ILink<ChainState>`), `ResolveActor`
-needs one field (`ILink<IHasActor>`), and `LoadStation` needs the whole feature (`ILink<CreateDefect.State>`).
+`POST` rather than `PATCH` for the resolution, because calling it twice differs from calling it once: the
+second attempt returns `409`. That rules out `PUT`'s idempotency promise, and `PATCH` would invite a single
+fat endpoint dispatching on which fields arrived — the opposite of one slice per command.
+
+Note the **four** levels of coupling visible in these declarations, each chosen by the link's own signature
+rather than by where it sits in the list — the fourth appeared with the generic validation link, which did
+not exist when this section was first written:
+
+| Link | Contract | Sees |
+| --- | --- | --- |
+| `SaveChanges` | `ILink<ChainState>` | nothing |
+| `ResolveActor` | `ILink<IHasActor>` | one field |
+| `ValidateRequest<T>` | `ILink<IHasRequest<T>>` | one field, generically |
+| `MarkResolved` | `ILink<ResolveDefectState>` | the whole feature |
 
 ### Registration
 
 ```csharp
-builder.Services.AddChainComposition(typeof(IApiMarker).Assembly);
-// scans for ILink<> implementations and registers them scoped, and registers ChainRunner
+var assemblyReference = typeof(Program).Assembly;
+
+builder.Services
+    .AddDbContexts(builder.Configuration, builder.Environment)
+    .AddJwtAuthentication(builder.Configuration, builder.Environment)
+    .AddValidation(assemblyReference)   // FluentValidation + the open generic ValidateRequest<>
+    .AddChain(assemblyReference);       // ILink<> implementations and ChainRunner, all scoped
+
+// ...
+app.MapApiEndpoints();                  // reflects over IEndpoint and calls MapEndpoint on each
 ```
+
+`AddChain` is the kernel's own registration method — the name `AddChainComposition` in earlier drafts was
+never built. Note that `AddValidation` must supply `services.AddScoped(typeof(ValidateRequest<>))`
+separately, because `AddChain`'s assembly scan skips open generics (Rule 7).
 
 ---
 
@@ -908,11 +1039,11 @@ builder.Services.AddChainComposition(typeof(IApiMarker).Assembly);
 (`"FHS.Chain"`).
 
 | Span | Tags |
-|---|---|
+| --- | --- |
 | `chain {Name}` | `chain.name`, `chain.outcome` (`success` / `done` / `fail` / `threw`), `chain.error` on a failure, `chain.failed_link` on a throw |
 | `link {Name}` | `chain.name`, `link.name`, `link.outcome` |
 
-`chain.failed_link` is the payoff of the rethrowing runner (§6): the exception keeps its own stack trace
+`chain.failed_link` is the payoff of the re-throwing runner (§6): the exception keeps its own stack trace
 *and* the span records which link was executing when it escaped.
 
 > **This requires one line in the API's telemetry setup.** An `ActivitySource` nothing has subscribed to
@@ -936,55 +1067,75 @@ stays, so adding the endpoint back is a small job whenever it is wanted.
 ## 11. Testing
 
 | Level | What it covers |
-|---|---|
+| --- | --- |
 | **Link test** | Construct a State, run one link, assert the field it wrote and the `LinkResult`. No HTTP, no DI, no database beyond a fake. This is where most coverage should live. |
 | **Integration test** | `WebApplicationFactory` + Testcontainers PostgreSQL, one per endpoint, asserting status codes and persisted state. |
-| **Architecture test** | NetArchTest: `FHS.Chain` references nothing from `FHS.Api`; no link type references another link type (Rule 5); every link in every chain is resolvable from the container. |
+| **Architecture test** | Seven, in `tests/Fhs.ArchitectureTests`. Built, green, and described below. |
 
-The last one is worth writing first — "every link in every chain can actually be constructed" is the
-single highest-value guard against a wiring mistake, and it runs in milliseconds.
+The last one was worth writing first, and it is **not** built on NetArchTest despite earlier drafts saying
+so. The kernel already exposes `Chain.Links`, `Chain.Describe()` and `LinkDescriptor`, so the tests inspect
+the *actual declared chains* by reflection rather than type shapes — strictly better, and one dependency
+fewer.
 
-Three levels that were in the original design are gone, and all three for the same reason — the thing they
-tested no longer exists as a separate mechanism:
+| Test | What it catches |
+| --- | --- |
+| `Every_declared_chain_builds` | Reads each static `Chain` field, which forces the type initializer, which runs `Build()` and the wiring check. Every ordering error in every chain, in milliseconds. |
+| `Nothing_follows_the_saving_link` | Rule 10. Skips chains with no `SaveChanges` — read-only and side-effect-only chains are legal. |
+| `No_link_depends_on_another_link` | Rule 5, via constructor parameters. |
+| `Every_link_in_every_chain_is_registered` | Resolution failures, including the open-generic `ValidateRequest<>` case. |
+| `Kernel_does_not_reference_the_api` | `FHS.Chain` stays application-free. |
+| `Every_entity_except_the_outbox_has_a_concurrency_token` | A new entity added without an `xmin` mapping. |
+| `No_migration_creates_the_xmin_system_column` | A regenerated migration reintroducing `AddColumn("xmin")`, which Postgres rejects. |
 
-- The **chain wiring test** is now `Build()`, which runs at startup and in every test that boots the app.
+**`Every_declared_chain_builds` is the load-bearing one**, and it does its work as a side effect: it is the
+only thing that makes the wiring check a *build-time* guard, since with the `IEndpoint` pattern the static
+initializer otherwise waits for the first request (Rule 13).
+
+Two caveats, stated so nobody assumes more coverage than exists. `No_link_depends_on_another_link` checks
+constructor parameters, which catches the realistic violation — links are stateless with constructor
+injection, so there is no other way to obtain one — but would miss a link `new`-ed inline; real reference
+analysis needs IL inspection. And **nothing enforces the `AsNoTracking` / no-`ExecuteUpdate` half of Rule
+14**, which is a call-site property rather than a type property; that stays a review rule until it bites.
+
+Three levels from the original design are gone, and all three for the same reason — the thing they tested
+no longer exists as a separate mechanism:
+
+- The **chain wiring test** is now `Build()`, reached by the architecture test above.
 - The **save-boundary test** enforced Rule 10 against `.OnCommitted<>()`, and v1 has no post-commit segment.
 - The **chain shape test** (`Describe()` equals an expected list) is optional. Write one for a chain whose
   sequence carries business meaning worth pinning; skip it otherwise.
 
+**Not built yet:** link tests and integration tests. The integration tier is the more urgent of the two —
+it is what would catch a chain that writes without declaring `SaveChanges`, which no architecture test can
+see.
+
+Note for whoever runs these: xUnit v3 uses Microsoft.Testing.Platform, which the .NET 10 SDK will not drive
+through the old VSTest bridge. `dotnet run --project tests/Fhs.ArchitectureTests` works today; `dotnet test`
+needs the repo-root opt-in.
+
 ---
 
-## 12. Assumptions to validate on day one
+## 12. Assumptions — all four settled
 
-**The kernel compiles. That proves less than it looks like it proves**, and it is worth being exact about
-what is still open, because all three assumptions below are load-bearing and **none of them has a call
-site yet.** `ChainBuilder<TState>.Link<TLink>()` declares `where TLink : class, ILink<TState>`, but a
-constraint is only checked where it is *applied* — and no chain has been declared. The first feature is
-therefore still the spike; these are what to watch when it first compiles:
+**Status: closed (2026-08-29).** Every load-bearing assumption behind the global-link idea has now been
+verified against a compiler and a running process. This section is kept as a record of what was actually at
+risk, because "it compiles" was doing a lot of work in earlier drafts and it is worth remembering that none
+of this was obvious in advance.
 
-1. **Variance conversion satisfies a generic constraint.** That `ResolveActor : ILink<IHasActor>` satisfies
-   `where TLink : class, ILink<TState>` when `TState : IHasActor`. Constraint satisfaction admits implicit
-   reference conversions, and a contravariant interface conversion is one — so
-   `ILink<IHasActor>` → `ILink<CreateDefect.State>` should hold because `CreateDefect.State` converts to
-   `IHasActor`. Expected to work; not yet verified by a compiler.
-2. **Local and global links compose in one builder.** That `ILink<CreateDefect.State>` and
-   `ILink<IHasActor>` can both be added to the same `ChainBuilder<CreateDefect.State>`.
-3. **The runtime cast holds.** That `(ILink<TState>)services.GetRequiredService(descriptor.Type)` succeeds
-   for a link registered by its concrete type — the cast, not the resolution, is the part relying on
-   variance at runtime. The CLR does support variant `castclass` on interfaces; again, expected, not
-   verified.
+| # | Assumption | Settled by |
+| --- | --- | --- |
+| 1 | A contravariant conversion satisfies a generic constraint — `ResolveActor : ILink<IHasActor>` satisfies `where TLink : class, ILink<TState>` when `TState : IHasActor` | `CreateDefect` compiling |
+| 2 | Local and global links compose in one builder | `CreateDefect` compiling |
+| 3 | The runtime cast holds — `(ILink<TState>)services.GetRequiredService(...)` succeeds via variant `castClass` | The first successful `POST /defects` |
+| 4 | `ChainState<TResult>` does not interfere with the capability conversions | `CreateDefect` compiling |
 
-Reinstating the second chain kind (§7) **restores a fourth assumption** that collapsing to one had
-removed:
+(1), (2) and (4) fell together the first time `CreateDefectEndpoint` built — the constraint is checked where
+it is *applied*, so the chain declaration is the only thing that could have tested them. (3) needed a
+request, because the CLR performs the variant cast at run time and nothing earlier exercises it.
 
-4. **`ChainState<TResult>` does not interfere with the capability conversions.** A value-producing State
-   inherits a generic base *and* implements capability interfaces
-   (`State : ChainState<DefectId>, IHasActor, IRaisesEvents`). Nothing in C#'s conversion rules suggests
-   the base class affects the interface variance conversion in (1), but it is a combination that has not
-   been compiled, and it is the one the very first feature will use.
-
-If (1) or (2) fails, §5 and §7 change shape and the global-link idea is dead in its current form — so
-**do not write five features before finding out.** Write one, compile it, then continue.
+Had (1) or (2) failed, §5 and §7 would have changed shape and the global-link idea would have been dead in
+its current form. They did not. `ValidateRequest<T>` later added a fifth case for free — a link whose
+capability is itself generic, `ILink<IHasRequest<TRequest>>` — which works the same way.
 
 ---
 
@@ -995,7 +1146,7 @@ long as the decision is made on evidence. Concrete criteria, to be reviewed once
 exist:
 
 | Signal | Keep | Abandon |
-|---|---|---|
+| --- | --- | --- |
 | A developer who has never seen a feature explains it from the declaration alone | under ~2 minutes | needs to open the links anyway |
 | Share of endpoints that are chains rather than plain handlers | meaningful majority of write paths | so few that the kernel is not paying for itself |
 | Escape-hatch count (§8) | rare and explainable | routine |
@@ -1033,7 +1184,7 @@ point of v1 is to find out which of these the codebase actually asks for.
 wrong. They are in the kernel as built; see §7 for what they cost and what they bought.
 
 | Deferred | Why | Trigger to revisit |
-|---|---|---|
+| --- | --- | --- |
 | `.OnCommitted<>()` | **Superseded, not pending.** Its whole job was keeping a post-commit failure off the response, and a post-save link that only enqueues has no failure to keep off it (§6) | A post-commit action that must be able to fail the request, or enough post-save links that Rule 10 stops being reviewable by eye |
 | `.Link<T>(when: …)` | Predicate in the descriptor, branch in the runner, `IsConditional` special case in the wiring check | A feature with a genuinely optional link — and a conditional link is never a guaranteed producer, so the check needs teaching |
 | `IChainWrapper`, `ChainRun` | Exactly two wrappers exist, neither varies per feature, both are five lines inline (§6) | A third around-concern, or one that must vary per chain |
@@ -1070,14 +1221,41 @@ wrong. They are in the kernel as built; see §7 for what they cost and what they
 Written by hand, in order, per the working agreement in §1. The project is **not run between steps** — it
 is run once, at the end.
 
+**The build order is complete as of 2026-08-29**, including the single end-to-end run it was structured
+around. `POST /defects` returned `201` against Postgres and Keycloak under Aspire.
+
 | # | Step | Status |
-|---|---|---|
+| --- | --- | --- |
 | 1 | The §12 spike | **skipped** — folded into step 4, since the assumptions are only checkable at a real call site |
-| 2 | `FHS.Chain` — §7's table, no application references | **done** (2026-08-23), minus `AddChainComposition` |
-| 3 | **Foundation** — `AddChainComposition`, domain entities, `FhsDbContext` + migrations, Keycloak auth, the outbox table, capabilities and the three shared links, `Program.cs` wiring | **in progress** |
-| 4 | **One feature end to end** — `CreateDefect`, per §9. Compiling this is what settles §12 | not started |
-| 5 | **The architecture test** (§11) — cheapest guard, highest value | not started |
-| 6 | **The second feature** — `ResolveDefect`, which proves the shared links are actually shared | not started |
+| 2 | `FHS.Chain` — §7's table, no application references | **done** (2026-08-23) |
+| 3 | **Foundation** — `AddChain`, entities, the two DbContexts + migrations, Keycloak auth, the outbox table, capabilities and the shared links, `Program.cs` wiring | **done** |
+| 4 | **One feature end to end** — `CreateDefect`, per §9. Compiling this settled §12 (1), (2) and (4) | **done** |
+| 5 | **The architecture tests** (§11) — seven, green | **done** |
+| 6 | **The second feature** — `ResolveDefect`, which proved the shared links really are shared | **done** |
+| 7 | **The first run** — settled §12 (3), the runtime variant cast | **done** (2026-08-29) |
+
+Step 3 grew considerably beyond its original description, and the additions are worth naming because none
+were anticipated: the command/query context split (§6), FluentValidation as a first link rather than a
+filter (Rule 7), the `AsNoTracking`-plus-explicit-write convention (Rule 14), and optimistic concurrency via
+`xmin` on every mutable entity.
+
+**What is not done**, in the order it is worth doing:
+
+1. **Integration tests** — `WebApplicationFactory` + Testcontainers. The only tier that catches a chain
+   which writes without declaring `SaveChanges`, and the only one that exercises the outbox row and the
+   `xmin` predicate end to end.
+2. **Link tests**, per §11 — cheap, and where most coverage is supposed to live.
+3. **The §13 review**, at roughly ten endpoints. Two exist.
+
+Three known scars to be aware of when extending this, all of which cost time once already:
+
+- The Keycloak realm import **only runs when the realm does not already exist**. With a persistent data
+  mount, editing `fhs-realm.json` and restarting silently keeps the old realm; `temp/keycloak` has to be
+  deleted first.
+- `xmin` is a Postgres **system column**. A regenerated migration will try to create it and fail; the
+  operation must be removed by hand. There is a test for this now.
+- An index `HasFilter` string is opaque to EF, so a mismatch with the naming convention survives
+  `migrations add` and only fails on apply.
 
 Step 3 did not exist in the original build order, which went straight from the kernel to `CreateDefect`.
 It was split out because the feature needs a database, an `Actor` and an events table before it can be
