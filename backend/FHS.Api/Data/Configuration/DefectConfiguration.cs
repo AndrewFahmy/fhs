@@ -6,19 +6,18 @@ namespace FHS.Api.Data.Configuration;
 
 public sealed class DefectConfiguration : IEntityTypeConfiguration<Defect>
 {
-    public static readonly int DescriptionMaxLength = AppConstants.Data.DescriptionMaxLength;
-    public static readonly int ResolutionMaxLength = 500;
-    public static readonly int SeverityMaxLength = AppConstants.Data.SeverityMaxLength;
-
     public void Configure(EntityTypeBuilder<Defect> builder)
     {
         builder.HasKey(d => d.Id);
         builder.Property(d => d.Id).ValueGeneratedNever();
 
-        builder.Property(d => d.Description).HasMaxLength(DescriptionMaxLength);
-        builder.Property(d => d.Resolution).HasMaxLength(ResolutionMaxLength);
+        builder.Property(d => d.Description).HasMaxLength(AppConstants.Data.DefectDescriptionMaxLength);
+        builder.Property(d => d.Resolution).HasMaxLength(AppConstants.Data.DefectResolutionMaxLength);
 
-        builder.Property(d => d.Severity).HasConversion<string>().HasMaxLength(SeverityMaxLength);
+        builder
+            .Property(d => d.Severity)
+            .HasConversion<string>()
+            .HasMaxLength(AppConstants.Data.DefectSeverityMaxLength);
 
         builder
             .HasOne<Station>()

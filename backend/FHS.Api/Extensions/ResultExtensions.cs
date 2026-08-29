@@ -21,4 +21,12 @@ public static class ResultExtensions
         public IResult ToCreated(Func<TValue, string> location) =>
             result.Match(value => Results.Created(location(value), value));
     }
+
+    extension(Result result)
+    {
+        public IResult Match(Func<IResult> onSuccess) =>
+            result.IsSuccess ? onSuccess() : result.Error.ToProblem();
+
+        public IResult ToNoContent() => result.Match(Results.NoContent);
+    }
 }

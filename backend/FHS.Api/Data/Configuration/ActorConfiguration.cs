@@ -6,18 +6,15 @@ namespace FHS.Api.Data.Configuration;
 
 public sealed class ActorConfiguration : IEntityTypeConfiguration<Actor>
 {
-    public static readonly int SubjectMaxLength = 255;
-    public static readonly int DisplayNameMaxLength = 200;
-
     public void Configure(EntityTypeBuilder<Actor> builder)
     {
         builder.HasKey(a => a.Id);
         builder.Property(a => a.Id).ValueGeneratedNever();
 
-        builder.Property(a => a.SubjectId).HasMaxLength(SubjectMaxLength);
+        builder.Property(a => a.SubjectId).HasMaxLength(AppConstants.Data.ActorSubjectIdMaxLength);
         builder.HasIndex(a => a.SubjectId).IsUnique();
 
-        builder.Property(a => a.DisplayName).HasMaxLength(DisplayNameMaxLength);
+        builder.Property(a => a.DisplayName).HasMaxLength(AppConstants.Data.ActorDisplayNameMaxLength);
 
         builder.HasData(
             new Actor
