@@ -29,6 +29,6 @@ public sealed class CreateStationEndpoint : IEndpoint
             )
             .WithName("Create Station")
             .WithTags("Stations")
-            .RequireAuthorization();
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
     }
 }

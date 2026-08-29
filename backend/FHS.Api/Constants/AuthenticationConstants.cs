@@ -5,7 +5,13 @@ public static partial class AppConstants
         private const string AuthenticationSectionName = "Authentication";
 
         public static readonly string AuthorityPropertyName = $"{AuthenticationSectionName}:Authority";
-        
+
         public static readonly string AudiencePropertyName = $"{AuthenticationSectionName}:Audience";
+
+        public const string RoleClaimType = "roles";
+
+        public const string AdminRole = "admin";
+
+        public const string AdminAccessPolicy = "AdminAccess";
     }
 }

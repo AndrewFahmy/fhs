@@ -5,6 +5,7 @@ using FHS.Api.Links;
 using FHS.Api.Primitives;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FHS.Api.Extensions;
@@ -39,7 +40,7 @@ public static class ServiceCollectionExtensions
                 options.TokenValidationParameters.RoleClaimType = "roles";
             });
 
-            services.AddAuthorization()
+            services.AddAuthorization(ConfigureAuthorization)
                 .AddHttpContextAccessor()
                 .AddScoped<ICurrentUser, CurrentUser>()
                 .AddScoped<IActorDirectory, ActorDirectory>();
@@ -72,5 +73,13 @@ public static class ServiceCollectionExtensions
                 options.EnableDetailedErrors().EnableSensitiveDataLogging();
             }
         });
+    }
+
+    private static void ConfigureAuthorization(AuthorizationOptions options)
+    {
+        options.AddPolicy(
+            AppConstants.Auth.AdminAccessPolicy,
+            policy => policy.RequireRole(AppConstants.Auth.AdminRole)
+        );
     }
 }

@@ -28,6 +28,6 @@ public sealed class DecommissionStationEndpoint : IEndpoint
             )
             .WithName("Decommission Station")
             .WithTags("Stations")
-            .RequireAuthorization();
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
     }
 }
