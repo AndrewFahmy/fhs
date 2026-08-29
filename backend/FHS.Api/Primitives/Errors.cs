@@ -14,4 +14,11 @@ public static class Errors
             $"Subject '{subjectId}' is not registered as an actor in FHS.",
             ErrorKind.Forbidden
         );
+
+    public static Error ConcurrencyConflict() =>
+        new(
+            "Concurrency.Conflict",
+            "The record was modified by someone else while this request was in flight. Reload and try again.",
+            ErrorKind.Conflict
+        );
 }

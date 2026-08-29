@@ -28,4 +28,10 @@ public static class DefectErrors
             $"Error code '{code}' is retired and cannot classify new defects.",
             ErrorKind.Conflict
         );
+
+    public static Error DefectNotFound(Guid defectId) =>
+        new("Defects.NotFound", $"No defect exists with id '{defectId}'.", ErrorKind.NotFound);
+
+    public static Error DefectAlreadyResolved(Guid defectId) =>
+        new("Defects.AlreadyResolved", $"Defect '{defectId}' has already been resolved.", ErrorKind.Conflict);
 }

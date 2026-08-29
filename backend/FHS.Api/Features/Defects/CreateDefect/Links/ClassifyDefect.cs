@@ -1,5 +1,5 @@
 using FHS.Api.Data;
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 using FHS.Chain.Attributes;
 using FHS.Chain.Contracts;
 using FHS.Chain.Primitives;

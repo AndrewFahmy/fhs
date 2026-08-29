@@ -1,4 +1,4 @@
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 using FHS.Api.Interfaces;
 using FHS.Chain.Contracts;
 

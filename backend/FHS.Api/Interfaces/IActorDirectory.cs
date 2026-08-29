@@ -1,4 +1,4 @@
-using FHS.Api.Domains;
+using FHS.Api.Data.Entities;
 
 namespace FHS.Api.Interfaces;
 
