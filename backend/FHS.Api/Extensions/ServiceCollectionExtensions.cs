@@ -65,6 +65,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<TDbContext>(options =>
         {
             options.UseNpgsql(connectionString, opts => opts.EnableRetryOnFailure());
+            options.UseSnakeCaseNamingConvention();
 
             if (isDevelopment)
             {
