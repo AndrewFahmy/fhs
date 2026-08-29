@@ -25,17 +25,20 @@ namespace FHS.Api.Data.Migrations
             modelBuilder.Entity("FHS.Api.Data.Entities.Actor", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
 
                     b.Property<string>("SubjectId")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("subject_id");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -43,12 +46,14 @@ namespace FHS.Api.Data.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_actor");
 
                     b.HasIndex("SubjectId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_actor_subject_id");
 
-                    b.ToTable("Actor");
+                    b.ToTable("actor", (string)null);
 
                     b.HasData(
                         new
@@ -70,39 +75,49 @@ namespace FHS.Api.Data.Migrations
             modelBuilder.Entity("FHS.Api.Data.Entities.Defect", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
 
                     b.Property<Guid>("ErrorCodeId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("error_code_id");
 
                     b.Property<string>("Resolution")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("resolution");
 
                     b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
 
                     b.Property<Guid?>("ResolvedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by");
 
                     b.Property<string>("Severity")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("severity");
 
                     b.Property<Guid>("StationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("station_id");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -110,41 +125,51 @@ namespace FHS.Api.Data.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_defect");
 
-                    b.HasIndex("CreatedBy");
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_defect_created_by");
 
-                    b.HasIndex("ErrorCodeId");
+                    b.HasIndex("ErrorCodeId")
+                        .HasDatabaseName("ix_defect_error_code_id");
 
-                    b.HasIndex("ResolvedBy");
+                    b.HasIndex("ResolvedBy")
+                        .HasDatabaseName("ix_defect_resolved_by");
 
-                    b.HasIndex("StationId");
+                    b.HasIndex("StationId")
+                        .HasDatabaseName("ix_defect_station_id");
 
-                    b.ToTable("Defect");
+                    b.ToTable("defect", (string)null);
                 });
 
             modelBuilder.Entity("FHS.Api.Data.Entities.ErrorCode", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("code");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Severity")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("severity");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -152,37 +177,46 @@ namespace FHS.Api.Data.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_error_code");
 
                     b.HasIndex("Code")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_error_code_code");
 
-                    b.ToTable("ErrorCode");
+                    b.ToTable("error_code", (string)null);
                 });
 
             modelBuilder.Entity("FHS.Api.Data.Entities.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset>("OccurredAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
 
                     b.Property<string>("Payload")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
 
                     b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("type");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_messages");
 
                     b.HasIndex("OccurredAt")
+                        .HasDatabaseName("ix_messages_occurred_at")
                         .HasFilter("processed_at IS NULL");
 
                     b.ToTable("messages", "outbox");
@@ -191,20 +225,24 @@ namespace FHS.Api.Data.Migrations
             modelBuilder.Entity("FHS.Api.Data.Entities.Station", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("code");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -212,12 +250,14 @@ namespace FHS.Api.Data.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_station");
 
                     b.HasIndex("Code")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_station_code");
 
-                    b.ToTable("Station");
+                    b.ToTable("station", (string)null);
                 });
 
             modelBuilder.Entity("FHS.Api.Data.Entities.Defect", b =>
@@ -226,24 +266,28 @@ namespace FHS.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_defect_actor_created_by");
 
                     b.HasOne("FHS.Api.Data.Entities.ErrorCode", null)
                         .WithMany()
                         .HasForeignKey("ErrorCodeId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_defect_error_code_error_code_id");
 
                     b.HasOne("FHS.Api.Data.Entities.Actor", null)
                         .WithMany()
                         .HasForeignKey("ResolvedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_defect_actor_resolved_by");
 
                     b.HasOne("FHS.Api.Data.Entities.Station", null)
                         .WithMany()
                         .HasForeignKey("StationId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_defect_station_station_id");
                 });
 #pragma warning restore 612, 618
         }
