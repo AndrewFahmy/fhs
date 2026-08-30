@@ -21,7 +21,7 @@ public sealed class ResolveDefectEndpoint : IEndpoint
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost(
-                "/defects/{id:guid}/resolution",
+                "/defects/{id:guid}/resolve",
                 async (Guid id, ResolveDefectRequest request, ChainRunner runner, CancellationToken ct) =>
                 {
                     var result = await runner.RunAsync(Handle, new ResolveDefectState(id, request), ct);

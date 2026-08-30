@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using FHS.Api.Enums;
+using FHS.Api.Features.Defects;
 using FHS.Api.Features.ErrorCodes;
 using FHS.Api.Features.Stations;
 
@@ -41,6 +42,32 @@ internal static class HttpClientExtensions
         {
             var response = await client.PostAsync($"/error-codes/{id}/retire", null, ct);
             response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<(Guid DefectId, Guid StationId, Guid ErrorCodeId)> RaiseDefectAsync(FhsApiFactory factory, CancellationToken ct)
+        {
+            var adminClient = factory.AdminClient();
+            var stationCode = adminClient.UniqueCode("ST");
+            var errorCode = adminClient.UniqueCode("EC");
+
+            var stationId = await adminClient.CreateStationAsync(stationCode, ct);
+            var errorCodeId = await adminClient.CreateErrorCodeAsync(errorCode, Severity.Major, ct);
+
+            var response = await client.PostAsJsonAsync("/defects",
+                new
+                {
+                    stationCode,
+                    errorCode,
+                    description = "Scratch on door panel"
+                }, 
+                ct
+            );
+
+            response.EnsureSuccessStatusCode();
+
+            var created = await response.Content.ReadFromJsonAsync<CreateDefectResponse>(ct);
+
+            return (created!.DefectId, stationId, errorCodeId);
         }
     }
 }
