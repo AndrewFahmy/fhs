@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using FHS.Api.Data;
 using FHS.Api.Extensions;
 using FHS.Chain;
@@ -13,6 +14,10 @@ var assemblyReference = typeof(Program).Assembly;
     builder.AddServiceDefaults();
 
     builder.Services.AddSingleton(TimeProvider.System);
+
+    builder.Services.ConfigureHttpJsonOptions(options =>
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter())
+    );
 
     builder
         .Services.AddOpenTelemetry()
