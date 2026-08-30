@@ -28,7 +28,7 @@ public sealed class CreateErrorCodeEndpoint : IEndpoint
                 }
             )
             .WithName("Create Error Code")
-            .WithTags("Error Codes")
+            .WithTags(AppConstants.Endpoints.ErrorCodesGroupName)
             .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
     }
 }
