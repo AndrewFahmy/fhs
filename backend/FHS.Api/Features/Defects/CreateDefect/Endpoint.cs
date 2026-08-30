@@ -31,7 +31,7 @@ public sealed class CreateDefectEndpoint : IEndpoint
                 }
             )
             .WithName("Create Defect")
-            .WithTags("Defects")
+            .WithTags(AppConstants.Endpoints.DefectsGroupName)
             .RequireAuthorization();
     }
 }

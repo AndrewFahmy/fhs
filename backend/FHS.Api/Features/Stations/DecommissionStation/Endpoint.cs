@@ -27,7 +27,7 @@ public sealed class DecommissionStationEndpoint : IEndpoint
                 }
             )
             .WithName("Decommission Station")
-            .WithTags("Stations")
+            .WithTags(AppConstants.Endpoints.StationsGroupName)
             .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
     }
 }

@@ -30,7 +30,7 @@ public sealed class ResolveDefectEndpoint : IEndpoint
                 }
             )
             .WithName("Resolve Defect")
-            .WithTags("Defects")
+            .WithTags(AppConstants.Endpoints.DefectsGroupName)
             .RequireAuthorization();
     }
 }
