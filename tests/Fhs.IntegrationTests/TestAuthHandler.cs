@@ -19,6 +19,7 @@ public sealed class TestAuthHandler(
 {
     public const string SchemeName = "Test";
     public const string SubjectHeader = "X-Test-Subject";
+    public const string RolesHeader = "X-Test-Roles";
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -29,7 +30,25 @@ public sealed class TestAuthHandler(
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        var identity = new ClaimsIdentity([new(ClaimTypes.NameIdentifier, subject!)], SchemeName);
+        List<Claim> claims = [new(ClaimTypes.NameIdentifier, subject!)];
+
+        if (Request.Headers.TryGetValue(RolesHeader, out var roles))
+        {
+            claims.AddRange(
+                roles
+                    .ToString()
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(role => new Claim(AppConstants.Auth.RoleClaimType, role))
+            );
+        }
+
+        // Same role claim type the JwtBearer handler is configured with, so RequireRole behaves identically.
+        var identity = new ClaimsIdentity(
+            claims,
+            SchemeName,
+            ClaimTypes.Name,
+            AppConstants.Auth.RoleClaimType
+        );
 
         return Task.FromResult(
             AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName))

@@ -1,0 +1,34 @@
+using FHS.Api.Data.Entities;
+using FHS.Api.Enums;
+using Fhs.IntegrationTests.Interfaces;
+
+namespace Fhs.IntegrationTests.Snapshots;
+
+internal sealed record DefectSnapshot(
+    Guid StationId,
+    Guid ErrorCodeId,
+    string Description,
+    Severity Severity,
+    Guid CreatedBy,
+    string? Resolution,
+    Guid? ResolvedBy,
+    bool IsResolved
+) : ISnapshotModel
+{
+    public static Type RelatedType { get; } = typeof(Defect);
+
+    public static string[] ExcludedProperties { get; } =
+        [nameof(Defect.Id), nameof(Defect.Version), nameof(Defect.CreatedAt), nameof(Defect.ResolvedAt)];
+
+    public static DefectSnapshot From(Defect defect) =>
+        new(
+            defect.StationId,
+            defect.ErrorCodeId,
+            defect.Description,
+            defect.Severity,
+            defect.CreatedBy,
+            defect.Resolution,
+            defect.ResolvedBy,
+            defect.ResolvedAt is not null
+        );
+}
