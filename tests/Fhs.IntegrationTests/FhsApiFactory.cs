@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 
 namespace Fhs.IntegrationTests;
@@ -15,6 +17,12 @@ public sealed class FhsApiFactory : WebApplicationFactory<Program>, IAsyncLifeti
         .WithName("fhs-integration-tests-postgres")
         .WithDatabase("fhs-db")
         .Build();
+
+    /// <summary>
+    /// Frozen unless a test advances it, so every timestamp the API writes is exactly predictable.
+    /// Whole seconds in UTC: Postgres' <c>timestamptz</c> keeps microseconds, so it round-trips intact.
+    /// </summary>
+    public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
     public async ValueTask InitializeAsync()
     {
@@ -51,10 +59,16 @@ public sealed class FhsApiFactory : WebApplicationFactory<Program>, IAsyncLifeti
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services =>
+        {
             services
                 .AddAuthentication(TestAuthHandler.SchemeName)
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { })
-        );
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                    TestAuthHandler.SchemeName,
+                    _ => { }
+                );
+
+            services.RemoveAll<TimeProvider>().AddSingleton<TimeProvider>(Clock);
+        });
     }
 
     public HttpClient CreateAnonymousClient() => CreateClient();

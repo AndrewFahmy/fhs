@@ -19,7 +19,7 @@ internal static class AssertionExtensions
         public async Task<IReadOnlyList<OutboxMessage>> OutboxForAsync(Guid subjectId, CancellationToken ct)
         {
             var all = await factory.QueryAsync(
-                (db, token) => db.Set<OutboxMessage>().AsNoTracking().ToListAsync(token),
+                (db, token) => db.Set<OutboxMessage>().AsNoTracking().OrderBy(m => m.Id).ToListAsync(token),
                 ct
             );
 

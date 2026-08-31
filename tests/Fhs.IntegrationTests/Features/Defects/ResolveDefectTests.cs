@@ -18,7 +18,11 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
         var client = factory.LineOperatorClient();
 
+        var raisedAt = factory.Clock.GetUtcNow();
         var (defectId, stationId, errorCodeId) = await client.RaiseDefectAsync(factory, ct);
+
+        factory.Clock.Advance(TimeSpan.FromMinutes(5));
+        var resolvedAt = factory.Clock.GetUtcNow();
 
         var response = await client.PostAsJsonAsync(
             EndpointRoute(defectId),
@@ -38,15 +42,19 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
                 "Scratch on door panel",
                 Severity.Major,
                 AppConstants.Data.LineOperatorActorId,
+                CreatedAt: raisedAt,
                 Resolution: "Buffed and re-inspected",
                 ResolvedBy: AppConstants.Data.LineOperatorActorId,
-                IsResolved: true
+                ResolvedAt: resolvedAt
             ),
             DefectSnapshot.From(defect)
         );
 
         Assert.Equal(
-            [OutboxMessageSnapshot.For<DefectRaised>(), OutboxMessageSnapshot.For<DefectResolved>()],
+            [
+                OutboxMessageSnapshot.For<DefectRaised>(raisedAt),
+                OutboxMessageSnapshot.For<DefectResolved>(resolvedAt)
+            ],
             [.. (await factory.OutboxForAsync(defectId, ct)).Select(OutboxMessageSnapshot.From)]
         );
     }

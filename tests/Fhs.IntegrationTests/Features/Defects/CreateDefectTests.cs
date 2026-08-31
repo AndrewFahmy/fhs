@@ -23,6 +23,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
 
         var stationId = await adminClient.CreateStationAsync(stationCode, ct);
         var errorCodeId = await adminClient.CreateErrorCodeAsync(errorCode, Severity.Critical, ct);
+        var raisedAt = factory.Clock.GetUtcNow();
 
         var response = await factory
             .LineOperatorClient()
@@ -53,16 +54,17 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
                 "Scratch on door panel",
                 Severity.Critical,
                 AppConstants.Data.LineOperatorActorId,
+                CreatedAt: raisedAt,
                 Resolution: null,
                 ResolvedBy: null,
-                IsResolved: false
+                ResolvedAt: null
             ),
             DefectSnapshot.From(defect)
         );
 
         var messages = await factory.OutboxForAsync(created.DefectId, ct);
         Assert.Equal(
-            [OutboxMessageSnapshot.For<DefectRaised>()],
+            [OutboxMessageSnapshot.For<DefectRaised>(raisedAt)],
             [.. messages.Select(OutboxMessageSnapshot.From)]
         );
 

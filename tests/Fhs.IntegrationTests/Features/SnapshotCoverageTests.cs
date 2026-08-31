@@ -38,6 +38,13 @@ public sealed class SnapshotCoverageTests
                 .GetProperties()
                 .Select(p => p.Name)
                 .Where(name => !accountedFor.Contains(name))
+                .Where(name =>
+                    !new[]
+                    {
+                        nameof(ISnapshotModel.RelatedType),
+                        nameof(ISnapshotModel.ExcludedProperties)
+                    }.Contains(name)
+                )
                 .ToArray();
 
             if (missing.Length > 0)

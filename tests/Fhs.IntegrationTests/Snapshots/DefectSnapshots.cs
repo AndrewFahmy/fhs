@@ -10,15 +10,15 @@ internal sealed record DefectSnapshot(
     string Description,
     Severity Severity,
     Guid CreatedBy,
+    DateTimeOffset CreatedAt,
     string? Resolution,
     Guid? ResolvedBy,
-    bool IsResolved
+    DateTimeOffset? ResolvedAt
 ) : ISnapshotModel
 {
     public static Type RelatedType { get; } = typeof(Defect);
 
-    public static string[] ExcludedProperties { get; } =
-        [nameof(Defect.Id), nameof(Defect.Version), nameof(Defect.CreatedAt), nameof(Defect.ResolvedAt)];
+    public static string[] ExcludedProperties { get; } = [nameof(Defect.Id), nameof(Defect.Version)];
 
     public static DefectSnapshot From(Defect defect) =>
         new(
@@ -27,8 +27,9 @@ internal sealed record DefectSnapshot(
             defect.Description,
             defect.Severity,
             defect.CreatedBy,
+            defect.CreatedAt,
             defect.Resolution,
             defect.ResolvedBy,
-            defect.ResolvedAt is not null
+            defect.ResolvedAt
         );
 }
