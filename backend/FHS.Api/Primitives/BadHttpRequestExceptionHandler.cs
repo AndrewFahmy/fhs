@@ -28,12 +28,13 @@ public sealed class BadHttpRequestExceptionHandler(ILogger<BadHttpRequestExcepti
             httpContext.Request.Path
         );
 
-        var error = Errors.MalformedRequest(Describe(badRequest));
+        var path = (badRequest.InnerException as JsonException)?.Path;
+        var error = Errors.MalformedRequest(Describe(path));
 
         var problem = Results.Problem(
             title: error.Message,
             statusCode: badRequest.StatusCode,
-            extensions: new Dictionary<string, object?> { ["code"] = error.Code }
+            extensions: new Dictionary<string, object?> { ["code"] = error.Code, ["path"] = path }
         );
 
         await problem.ExecuteAsync(httpContext);
@@ -45,8 +46,8 @@ public sealed class BadHttpRequestExceptionHandler(ILogger<BadHttpRequestExcepti
     /// The JSON path is safe to return and tells the caller which member was wrong; the exception's
     /// own message names internal parameter and type names, so it stays in the log.
     /// </summary>
-    private static string Describe(BadHttpRequestException badRequest) =>
-        badRequest.InnerException is JsonException { Path: { } path }
+    private static string Describe(string? path) =>
+        path is not null
             ? $"The request body could not be read at '{path}'."
             : "The request body could not be read.";
 }
