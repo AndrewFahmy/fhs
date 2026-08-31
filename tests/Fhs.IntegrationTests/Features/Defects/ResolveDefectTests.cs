@@ -10,7 +10,7 @@ namespace Fhs.IntegrationTests.Features.Defects;
 [Collection(nameof(FhsApiCollection))]
 public sealed class ResolveDefectTests(FhsApiFactory factory)
 {
-    private const string ResolveDefectEndpoint = "/defects/{0}/resolve";
+    private static string EndpointRoute(Guid defectId) => $"/defects/{defectId}/resolve";
 
     [Fact]
     public async Task Marks_the_defect_resolved_and_records_the_domain_event()
@@ -21,7 +21,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
         var (defectId, stationId, errorCodeId) = await client.RaiseDefectAsync(factory, ct);
 
         var response = await client.PostAsJsonAsync(
-            string.Format(ResolveDefectEndpoint, defectId),
+            EndpointRoute(defectId),
             new { resolution = "Buffed and re-inspected" },
             ct
         );
@@ -59,8 +59,8 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
         var (defectId, _, _) = await client.RaiseDefectAsync(factory, ct);
         var body = new { resolution = "Buffed and re-inspected" };
 
-        await client.PostAsJsonAsync(string.Format(ResolveDefectEndpoint, defectId), body, ct);
-        var second = await client.PostAsJsonAsync(string.Format(ResolveDefectEndpoint, defectId), body, ct);
+        await client.PostAsJsonAsync(EndpointRoute(defectId), body, ct);
+        var second = await client.PostAsJsonAsync(EndpointRoute(defectId), body, ct);
 
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.Conflict, "Defects.AlreadyResolved"),
@@ -75,11 +75,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
 
         var response = await factory
             .LineOperatorClient()
-            .PostAsJsonAsync(
-                string.Format(ResolveDefectEndpoint, Guid.CreateVersion7()),
-                new { resolution = "x" },
-                ct
-            );
+            .PostAsJsonAsync(EndpointRoute(Guid.CreateVersion7()), new { resolution = "x" }, ct);
 
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.NotFound, "Defects.NotFound"),
