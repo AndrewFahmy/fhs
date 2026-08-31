@@ -21,4 +21,7 @@ public static class Errors
             "The record was modified by someone else while this request was in flight. Reload and try again.",
             ErrorKind.Conflict
         );
+
+    public static Error MalformedRequest(string message) =>
+        new("Request.Malformed", message, ErrorKind.Validation);
 }

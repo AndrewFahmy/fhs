@@ -81,8 +81,12 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
             ct
         );
 
-        // Rejected by the JSON reader before the chain runs, so there is no Validation.Failed body.
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Rejected by the JSON reader before the chain runs, so the code is Request.Malformed
+        // rather than Validation.Failed — but the body shape is the same.
+        Assert.Equal(
+            new ProblemSnapshot(HttpStatusCode.BadRequest, "Request.Malformed"),
+            await ProblemSnapshot.FromAsync(response, ct)
+        );
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using FHS.Api.Data;
 using FHS.Api.Extensions;
+using FHS.Api.Primitives;
 using FHS.Chain;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -24,6 +25,11 @@ var assemblyReference = typeof(Program).Assembly;
         .WithTracing(tracing => tracing.AddSource(ChainRunner.ActivitySourceName).AddNpgsql());
 
     builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
+
+    // Pinned rather than left to default: otherwise binding failures are a bodiless 400 in
+    // production and a 500 in development, and the tests only ever see the development answer.
+    builder.Services.PostConfigure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 
     builder
         .Services.AddDbContexts(builder.Configuration, builder.Environment)
