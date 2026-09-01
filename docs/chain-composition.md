@@ -1066,10 +1066,12 @@ stays, so adding the endpoint back is a small job whenever it is wanted.
 
 ## 11. Testing
 
+**Two levels, not three.** The original design had a link tier under these; it was cut on 2026-09-01 and
+the reasoning is below.
+
 | Level | What it covers |
 | --- | --- |
-| **Link test** | Construct a State, run one link, assert the field it wrote and the `LinkResult`. No HTTP, no DI, no database beyond a fake. This is where most coverage should live. |
-| **Integration test** | `WebApplicationFactory` + Testcontainers PostgreSQL, one per endpoint, asserting status codes and persisted state. |
+| **Integration test** | `WebApplicationFactory` + Testcontainers PostgreSQL, one per endpoint, asserting status codes and persisted state. Built, green, and described below. |
 | **Architecture test** | Seven, in `tests/Fhs.ArchitectureTests`. Built, green, and described below. |
 
 The last one was worth writing first, and it is **not** built on NetArchTest despite earlier drafts saying
@@ -1098,16 +1100,35 @@ analysis needs IL inspection. And **nothing enforces the `AsNoTracking` / no-`Ex
 14**, which is a call-site property rather than a type property; that stays a review rule until it bites.
 
 Three levels from the original design are gone, and all three for the same reason — the thing they tested
-no longer exists as a separate mechanism:
+no longer exists as a separate mechanism. (A fourth, the link tier, is gone too, but for a different reason;
+that one is recorded below.)
 
 - The **chain wiring test** is now `Build()`, reached by the architecture test above.
 - The **save-boundary test** enforced Rule 10 against `.OnCommitted<>()`, and v1 has no post-commit segment.
 - The **chain shape test** (`Describe()` equals an expected list) is optional. Write one for a chain whose
   sequence carries business meaning worth pinning; skip it otherwise.
 
-**Not built yet:** link tests and integration tests. The integration tier is the more urgent of the two —
-it is what would catch a chain that writes without declaring `SaveChanges`, which no architecture test can
-see.
+**Integration tests are built** (2026-09-01) — one class per endpoint across all six, on Testcontainers
+Postgres. Two conventions were added while writing them and are worth knowing before extending the tier.
+Persisted state is asserted by projecting the entity onto a **snapshot record** and comparing it whole, so
+one failure names every wrong member at once; `SnapshotCoverageTests` then reflects over every
+`ISnapshotModel` and fails when an entity grows a property no snapshot accounts for. And the API's
+`TimeProvider` is replaced with a `FakeTimeProvider`, which is what lets `CreatedAt`, `ResolvedAt` and
+`OccurredAt` be asserted as values rather than excluded as noise.
+
+**The link tier is cut** (2026-09-01), and with it the fourth test project it would have needed. §11
+originally called link tests "where most coverage should live", but that was written before the integration
+tier existed and it did not survive contact with one. Chains are thin, every link sits on a path some
+endpoint already exercises, and a link that changes shape fails an integration test the same day — so the
+tier would have duplicated coverage rather than added it, at the cost of an EF fake and a set of test
+doubles kept in step with `ICurrentUser` and `IActorDirectory` forever.
+
+What that gives up, stated so nobody assumes otherwise: branches that are expensive or impossible to reach
+over HTTP are not covered. `SaveChanges` turning a `DbUpdateConcurrencyException` into
+`Concurrency.Conflict` needs two genuinely racing requests and has no test today, and
+`Errors.Unauthenticated()` in `ResolveActor` cannot be reached through an authenticated endpoint at all.
+Both are accepted. If a link ever grows real branching logic — Rule 3 pressure, in §13's terms — the answer
+is a test for *that link*, not rebuilding the tier.
 
 Note for whoever runs these: xUnit v3 uses Microsoft.Testing.Platform, which the .NET 10 SDK will not drive
 through the old VSTest bridge. `dotnet run --project tests/Fhs.ArchitectureTests` works today; `dotnet test`
@@ -1241,11 +1262,14 @@ filter (Rule 7), the `AsNoTracking`-plus-explicit-write convention (Rule 14), an
 
 **What is not done**, in the order it is worth doing:
 
-1. **Integration tests** — `WebApplicationFactory` + Testcontainers. The only tier that catches a chain
-   which writes without declaring `SaveChanges`, and the only one that exercises the outbox row and the
-   `xmin` predicate end to end.
-2. **Link tests**, per §11 — cheap, and where most coverage is supposed to live.
-3. **The §13 review**, at roughly ten endpoints. Two exist.
+1. ~~**Integration tests**~~ — **done** (2026-09-01), all six endpoints. Writing them found two API bugs
+   the other tiers could not see: binding failures returned `500` in development and a bodiless `400` in
+   production, because `RouteHandlerOptions.ThrowOnBadRequest` defaults to `IsDevelopment()` and nothing
+   caught the resulting `BadHttpRequestException`. Both are fixed — the flag is pinned in every
+   environment and a `BadHttpRequestExceptionHandler` renders the ProblemDetails.
+2. **The §13 review**, at roughly ten endpoints. Six exist.
+
+Link tests were item 2 here and are **cut**, not deferred — see §11 for why and for what it costs.
 
 Three known scars to be aware of when extending this, all of which cost time once already:
 
