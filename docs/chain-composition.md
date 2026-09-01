@@ -4,10 +4,11 @@
 > out whether this technique holds up under real features. v1 deliberately builds the smallest kernel that
 > can answer that question — roughly **half** the surface of the original design.
 >
-> The kernel, the foundation, two features (`CreateDefect`, `ResolveDefect`) and seven architecture tests
-> exist, and the API has been run end to end against Postgres and Keycloak under Aspire. **All four of §12's
-> load-bearing assumptions are settled** — the contravariant conversions the whole global-link idea rests on
-> do work, at compile time and at run time.
+> The kernel, the foundation, six endpoints across Defects, Stations and Error Codes, seven architecture
+> tests and an integration suite on Testcontainers Postgres exist, and the API has been run end to end
+> against Postgres and Keycloak under Aspire. **All four of §12's load-bearing assumptions are settled** —
+> the contravariant conversions the whole global-link idea rests on do work, at compile time and at run
+> time.
 >
 > **This document is reconciled against the code that was actually written**, and the code has won every
 > disagreement. It departs from the original v1 proposal in eight places: two chain kinds instead of one
@@ -16,12 +17,14 @@
 > (§6), no-tracking reads with explicit writes (Rule 14), optimistic concurrency on every mutable entity
 > (§6), and flat State types with `IEndpoint` registration instead of a nested feature class (Rule 12, §9).
 >
-> The complete design, including everything cut below, is preserved in
-> [`chain-composition-full.md`](./chain-composition-full.md). Read this document to build; read that one
-> to understand where the pattern is headed. §14 lists every remaining deferral and the reason for it.
+> **This is the only architecture document.** The longer companion that carried the full original design
+> was deleted on 2026-09-01 — it described a v2 that does not exist, and keeping a second document
+> reconciled against a moving codebase cost more than it returned. Nothing load-bearing was lost: §14 still
+> lists every deferral and the reason for it, which was the only part being read. The successor, when v1 is
+> done, is a new document written incrementally against this one — not that file restored.
 >
 > §13 holds the criteria for keeping or abandoning the approach, to be reviewed once roughly ten endpoints
-> exist. Two do.
+> exist. Six do.
 
 ---
 
@@ -1194,9 +1197,10 @@ exist:
 
 ## 14. Deferred
 
-Everything here is designed in full in [`chain-composition-full.md`](./chain-composition-full.md). Nothing
-is rejected; each is waiting for a feature that demands it. **Do not build any of it speculatively** — the
-point of v1 is to find out which of these the codebase actually asks for.
+Nothing here is rejected; each is waiting for a feature that demands it. **Do not build any of it
+speculatively** — the point of v1 is to find out which of these the codebase actually asks for. The tables
+below are now the record: the reasoning they summarise used to live in the deleted companion document, so
+a row's "Why" and "Trigger to revisit" are all there is, and both are worth writing properly.
 
 ### Cut from the original design for v1
 
@@ -1217,7 +1221,7 @@ wrong. They are in the kernel as built; see §7 for what they cost and what they
 
 ### Already deferred in the original design
 
-- **A Roslyn analyzer.** Fully specified in `chain-composition-full.md` §15, and **explicitly not v1.**
+- **A Roslyn analyzer**, **explicitly not v1.**
   Ordering is already handled by the declarations in §5 and the `Build()` check, and *that check needs no
   Roslyn at all*. The analyzer's one unique remaining job is proving declarations truthful — catching a
   link that declares `[Produces(Station)]` and never assigns it (`FHS001`). Everything else it would
