@@ -1,5 +1,6 @@
 using FHS.Api.Data;
 using FHS.Api.Data.Entities;
+using FHS.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,9 +10,9 @@ internal static class AssertionExtensions
 {
     extension(FhsApiFactory factory)
     {
-        public Task<Defect?> FindDefectAsync(Guid id, CancellationToken ct) =>
+        public Task<TEntity?> FindAsync<TEntity>(Guid id, CancellationToken ct) where TEntity: class, IDbEntity =>
             factory.QueryAsync(
-                (db, token) => db.Set<Defect>().AsNoTracking().SingleOrDefaultAsync(d => d.Id == id, token),
+                (db, token) => db.Set<TEntity>().AsNoTracking().SingleOrDefaultAsync(e => e.Id == id, token), 
                 ct
             );
 

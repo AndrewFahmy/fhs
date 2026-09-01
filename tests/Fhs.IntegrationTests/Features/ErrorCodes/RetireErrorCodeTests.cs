@@ -1,4 +1,5 @@
 using System.Net;
+using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Snapshots;
@@ -15,16 +16,23 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.AdminClient();
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(
-            adminClient.UniqueCode("EC"),
-            Severity.Major,
-            ct
-        );
+        var code = adminClient.UniqueCode("EC");
+        var description = "Paint runs on the outer skin";
+
+        var errorCodeId = await adminClient.CreateErrorCodeAsync(code, Severity.Major, ct, description);
 
         var first = await adminClient.PostAsync(EndpointRoute(errorCodeId), null, ct);
         var second = await adminClient.PostAsync(EndpointRoute(errorCodeId), null, ct);
 
+        var errorCode = await factory.FindAsync<ErrorCode>(errorCodeId, ct);
+        Assert.NotNull(errorCode);
+
         Assert.Equal(HttpStatusCode.NoContent, first.StatusCode);
+
+        Assert.Equal(
+            new ErrorCodeSnapshot(code, description, Severity.Major, IsActive: false),
+            ErrorCodeSnapshot.From(errorCode)
+        );
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.Conflict, "ErrorCodes.AlreadyRetired"),
             await ProblemSnapshot.FromAsync(second, ct)

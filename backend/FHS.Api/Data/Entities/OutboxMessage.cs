@@ -1,6 +1,8 @@
+using FHS.Api.Interfaces;
+
 namespace FHS.Api.Data.Entities;
 
-public sealed class OutboxMessage
+public sealed class OutboxMessage : IDbEntity
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 

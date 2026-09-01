@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
 using Fhs.IntegrationTests.Extensions;
@@ -44,7 +45,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         Assert.NotNull(created);
         Assert.Equal($"/defects/{created.DefectId}", response.Headers.Location?.ToString());
 
-        var defect = await factory.FindDefectAsync(created.DefectId, ct);
+        var defect = await factory.FindAsync<Defect>(created.DefectId, ct);
         Assert.NotNull(defect);
 
         Assert.Equal(

@@ -1,3 +1,5 @@
+using FHS.Api.Interfaces;
+
 namespace FHS.Api.Data.Entities;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace FHS.Api.Data.Entities;
 /// jobs raise defects too, and <c>User</c> already means <see cref="System.Security.Claims.ClaimsPrincipal"/>
 /// in this codebase (<c>HttpContext.User</c>, <c>ICurrentUser</c>).
 /// </summary>
-public sealed class Actor
+public sealed class Actor : IDbEntity
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 

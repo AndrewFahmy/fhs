@@ -12,9 +12,9 @@ internal static class HttpClientExtensions
     {
         public string UniqueCode(string prefix) => $"{prefix}_{Guid.NewGuid().ToString("N")[..8]}";
 
-        public async Task<Guid> CreateStationAsync(string code, CancellationToken ct)
+        public async Task<Guid> CreateStationAsync(string code, CancellationToken ct, string? name = null)
         {
-            var response = await client.PostAsJsonAsync("/stations", new{ code, name = code }, ct);
+            var response = await client.PostAsJsonAsync("/stations", new{ code, name = name ?? code }, ct);
             response.EnsureSuccessStatusCode();
 
             var created = await response.Content.ReadFromJsonAsync<CreateStationResponse>(ct);
@@ -28,9 +28,23 @@ internal static class HttpClientExtensions
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<Guid> CreateErrorCodeAsync(string code, Severity severity, CancellationToken ct)
+        public async Task<Guid> CreateErrorCodeAsync(
+            string code, 
+            Severity severity, 
+            CancellationToken ct,
+            string? description = null
+        )
         {
-            var response = await client.PostAsJsonAsync("/error-codes", new { code, description = code, severity = severity.ToString() }, ct);
+            var response = await client.PostAsJsonAsync("/error-codes", 
+                new 
+                { 
+                    code, 
+                    description = description ?? code, 
+                    severity = severity.ToString() 
+                },
+                ct
+            );
+
             response.EnsureSuccessStatusCode();
 
             var created = await response.Content.ReadFromJsonAsync<CreateErrorCodeResponse>(ct);

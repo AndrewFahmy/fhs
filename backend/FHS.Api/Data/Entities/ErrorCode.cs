@@ -1,8 +1,9 @@
 using FHS.Api.Enums;
+using FHS.Api.Interfaces;
 
 namespace FHS.Api.Data.Entities;
 
-public sealed class ErrorCode
+public sealed class ErrorCode : IDbEntity
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 

@@ -18,22 +18,29 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.AdminClient();
         var code = adminClient.UniqueCode("EC");
+        var description = "Paint runs on the outer skin";
 
         // Sends "Critical", not an integer - proves that JsonStringEnumConverter is wired up.
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(code, Severity.Critical, ct);
+        var errorCodeId = await adminClient.CreateErrorCodeAsync(code, Severity.Critical, ct, description);
 
         var duplicate = await adminClient.PostAsJsonAsync(
             ErrorCodesEndpoint,
             new
             {
-                Code = code,
+                code,
+                description,
                 Severity = Severity.Critical,
-                description = code
             },
             ct
         );
 
-        Assert.NotEqual(Guid.Empty, errorCodeId);
+        var errorCode = await factory.FindAsync<ErrorCode>(errorCodeId, ct);
+        Assert.NotNull(errorCode);
+
+        Assert.Equal(
+            new ErrorCodeSnapshot(code, description, Severity.Critical, IsActive: true),
+            ErrorCodeSnapshot.From(errorCode)
+        );
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.Conflict, "ErrorCodes.CodeAlreadyExists"),
             await ProblemSnapshot.FromAsync(duplicate, ct)
