@@ -732,11 +732,30 @@ no compile-time signal, which is why §11 has a test for it.
 
 These are the part that actually protects maintainability. The pattern degrades without them.
 
-1. **Use a chain when it earns it** — three or more meaningful operations, or at least one shared concern.
-   A `GET /defects/{id}` stays a plain endpoint calling a query. A mixed codebase is *correct*, not a
-   failure of discipline.
-2. **Three to eight links.** More than eight means the feature is really two features, or the links have
-   been sliced too thin to carry meaning.
+1. **Every endpoint is a chain, reads included.** This rule said the opposite until 2026-09-01 — that a
+   chain had to earn its place with three or more meaningful operations or a shared concern, that a
+   `GET /defects/{id}` stays a plain endpoint calling a query, and that a mixed codebase is *correct*
+   rather than a failure of discipline. The old text is kept here because the reversal is the interesting
+   part, and because the argument for the exemption was a good one.
+
+   What overturned it is that the exemption bought less than it appeared to. `ChainRunner` is the only
+   thing that opens the `chain` and `link` spans in §10, so every plain handler is a hole in the one trace
+   view — and reads are the endpoints most likely to be the slow ones. `Result<T>` reaching the client
+   through `ToOk()` and `ToProblem()` is what stops a read's `404` from drifting away from a write's `404`
+   by hand. And a read that later needs the actor — defects filtered to the operator's own line — already
+   has somewhere to put the link, where a plain handler would have to be rewritten into a slice first.
+
+   **The cost is real and is not hidden here:** all four read chains are a single link, which Rule 2 as
+   written would have forbidden and which §13 counts as ceremony. Rule 2 and the §13 signal table were
+   both amended in the same pass rather than left to contradict this.
+
+   The escape hatch at the end of this section still stands. It now has no users.
+2. **Three to eight links on a write. One is normal on a read.** More than eight means the feature is
+   really two features, or the links have been sliced too thin to carry meaning. Reads sit outside the band
+   by construction rather than by exception: a query link builds one query and produces one result, and
+   splitting it in two would mean either running the query twice or handing an unexecuted `IQueryable`
+   through State to be run somewhere else — which is exactly the action at a distance Rule 14 exists to
+   prevent.
 3. **Linear only. No branching combinator in v1.** No `when:` guards, no nested chains, no loops, no jumps.
    A branch *tree* means two features and two chains, selected at the endpoint. Linear composition handles
    branching badly — this is its best-known failure mode, and the rule is the mitigation. A link that
@@ -857,6 +876,13 @@ backend/FHS.Api/Features/Defects/
 ```
 
 Shared links live in `backend/FHS.Api/Links/`, capabilities in `backend/FHS.Api/Interfaces/`.
+
+**A read slice has the same shape**, since Rule 1 stopped exempting reads — `State.cs`, `Models.cs`, one
+link under `Links/`, `Endpoint.cs`, with no `Validator.cs` while the query parameters are clamped rather
+than validated. It differs in exactly two ways: the link takes `FhsQueryDbContext` instead of
+`FhsCommandDbContext`, and the State carries **no capability interface**. That second one is Rule 9 in
+practice — `IHasRequest` exists for `ValidateRequestInput` and nothing else, so a read that runs no
+validation link declares a plain `Request` property and adds the interface on the day it needs one.
 
 Endpoints implement `IEndpoint`, a one-member interface with a `static abstract MapEndpoint`, and
 `app.MapApiEndpoints()` reflects over the assembly to call each one. That is the *registration* third of the
@@ -1172,14 +1198,20 @@ exist:
 | Signal | Keep | Abandon |
 | --- | --- | --- |
 | A developer who has never seen a feature explains it from the declaration alone | under ~2 minutes | needs to open the links anyway |
-| Share of endpoints that are chains rather than plain handlers | meaningful majority of write paths | so few that the kernel is not paying for itself |
+| Share of endpoints that are chains rather than plain handlers | all of them, per Rule 1 — read the escape-hatch row instead | plain handlers reappearing because a feature fought the chain |
 | Escape-hatch count (§8) | rare and explainable | routine |
 | `[Requires]`/`[Produces]` ceremony | reads as useful documentation on the link | felt as noise, or quietly omitted until `Build()` complains |
 | Rule 3 pressure (features wanting a branch) | rare | constant |
 | Kernel size | stays near 300 LOC (275 at kernel completion) | keeps growing to accommodate features |
 | Capability interfaces | three to six, stable | proliferating, one per link |
-| Median chain length | 3–8 | drifting above 8 |
+| Median chain length, **write chains only** | 3–8 | drifting above 8 |
 | A real production stack trace | readable | unusable |
+
+Two rows were amended on 2026-09-01, when Rule 1 stopped exempting reads. Every endpoint is a chain now,
+so counting chains no longer measures anything — the escape-hatch row is what carries that signal. And
+read chains are one link by construction, so including them would drag the median toward 2 for a reason
+that says nothing about whether the pattern fits. Measure the median over write chains, and watch the
+read side's file count under the ceremony-floor risk below instead.
 
 ### Standing risks
 
@@ -1189,7 +1221,11 @@ exist:
 - **Metadata drift** — the wiring check verifies ordering against what links *declare*, and a link could
   declare `[Produces]` for a field it never assigns. Much smaller than the unverified ordering it replaces;
   closing it needs the analyzer, which v1 does not build.
-- **Ceremony floor** — a trivial feature does not deserve four files. Mitigated by Rule 1.
+- **Ceremony floor** — a trivial feature does not deserve four files. Rule 1 used to mitigate this and
+  since 2026-09-01 it *causes* it: a read slice is State, Models, one link and Endpoint, for what a plain
+  handler did in two files. That was accepted deliberately, for the reasons in Rule 1, and it is the
+  standing cost of the uniformity decision. It is worth watching if the read side grows faster than the
+  write side, which for a system whose users mostly *look* at defects is the likely direction.
 - **Not a workflow engine** — worth repeating, because the vocabulary invites the assumption. No
   durability, no resume, no compensation.
 
@@ -1271,7 +1307,12 @@ filter (Rule 7), the `AsNoTracking`-plus-explicit-write convention (Rule 14), an
    production, because `RouteHandlerOptions.ThrowOnBadRequest` defaults to `IsDevelopment()` and nothing
    caught the resulting `BadHttpRequestException`. Both are fixed — the flag is pinned in every
    environment and a `BadHttpRequestExceptionHandler` renders the ProblemDetails.
-2. **The §13 review**, at roughly ten endpoints. Six exist.
+2. **The read side** — `GET /defects`, `GET /defects/{id}`, `GET /stations`, `GET /error-codes`, in
+   progress as of 2026-09-01. It is the first use of `FhsQueryDbContext`, which had been registered and
+   referenced by nothing since step 3, and writing it is what reversed Rule 1 (§8). Paging is offset-based
+   and clamped rather than validated; keyset paging on the v7 `Id` is the escape if the defect table ever
+   outgrows it.
+3. **The §13 review.** The read side takes the endpoint count to ten, which is the trigger.
 
 Link tests were item 2 here and are **cut**, not deferred — see §11 for why and for what it costs.
 
