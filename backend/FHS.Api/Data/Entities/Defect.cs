@@ -24,4 +24,13 @@ public sealed class Defect : IDbEntity
     /// Maintained by the database; never assigned by the application.
     /// </summary>
     public uint Version { get; private set; }
+
+    // Navigation properties
+    public Station Station { get; set; } = null!;
+
+    public ErrorCode ErrorCode { get; set; } = null!;
+
+    public Actor Creator { get; set; } = null!;
+
+    public Actor? Resolver { get; set; }
 }

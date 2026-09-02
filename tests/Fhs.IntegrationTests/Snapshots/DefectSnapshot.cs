@@ -18,7 +18,15 @@ internal sealed record DefectSnapshot(
 {
     public static Type RelatedType { get; } = typeof(Defect);
 
-    public static string[] ExcludedProperties { get; } = [nameof(Defect.Id), nameof(Defect.Version)];
+    public static string[] ExcludedProperties { get; } =
+        [
+            nameof(Defect.Id),
+            nameof(Defect.Version),
+            nameof(Defect.Station),
+            nameof(Defect.ErrorCode),
+            nameof(Defect.Creator),
+            nameof(Defect.Resolver)
+        ];
 
     public static DefectSnapshot From(Defect defect) =>
         new(
