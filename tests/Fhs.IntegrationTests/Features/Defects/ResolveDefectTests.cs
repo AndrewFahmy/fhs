@@ -5,6 +5,7 @@ using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
 using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Snapshots;
+using Fhs.IntegrationTests.Handlers;
 
 namespace Fhs.IntegrationTests.Features.Defects;
 
@@ -20,7 +21,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
         var client = factory.LineOperatorClient();
 
         var raisedAt = factory.Clock.GetUtcNow();
-        var (defectId, stationId, errorCodeId) = await client.RaiseDefectAsync(factory, ct);
+        var (defectId, stationId, errorCodeId) = await DefectsHandler.RaiseDefectAsync(client, factory, ct);
 
         factory.Clock.Advance(TimeSpan.FromMinutes(5));
         var resolvedAt = factory.Clock.GetUtcNow();
@@ -65,7 +66,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var client = factory.LineOperatorClient();
-        var (defectId, _, _) = await client.RaiseDefectAsync(factory, ct);
+        var (defectId, _, _) = await DefectsHandler.RaiseDefectAsync(client, factory, ct);
         var body = new { resolution = "Buffed and re-inspected" };
 
         await client.PostAsJsonAsync(EndpointRoute(defectId), body, ct);

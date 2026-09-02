@@ -5,6 +5,7 @@ using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
 using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Snapshots;
+using Fhs.IntegrationTests.Handlers;
 
 namespace Fhs.IntegrationTests.Features.Defects;
 
@@ -22,8 +23,8 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
 
-        var stationId = await adminClient.CreateStationAsync(stationCode, ct);
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(errorCode, Severity.Critical, ct);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Critical, ct);
         var raisedAt = factory.Clock.GetUtcNow();
 
         var response = await factory
@@ -105,7 +106,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var adminClient = factory.AdminClient();
         var errorCode = adminClient.UniqueCode("EC");
 
-        await adminClient.CreateErrorCodeAsync(errorCode, Severity.Major, ct);
+        await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Major, ct);
 
         var response = await factory
             .LineOperatorClient()
@@ -135,9 +136,9 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
 
-        var stationId = await adminClient.CreateStationAsync(stationCode, ct);
-        await adminClient.CreateErrorCodeAsync(errorCode, Severity.Major, ct);
-        await adminClient.DecommissionStationAsync(stationId, ct);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
+        await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Major, ct);
+        await StationsHandler.DecommissionStationAsync(adminClient, stationId, ct);
 
         var response = await factory
             .LineOperatorClient()
@@ -167,9 +168,9 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
 
-        await adminClient.CreateStationAsync(stationCode, ct);
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(errorCode, Severity.Major, ct);
-        await adminClient.RetireErrorCodeAsync(errorCodeId, ct);
+        await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Major, ct);
+        await ErrorCodesHandler.RetireErrorCodeAsync(adminClient, errorCodeId, ct);
 
         var response = await factory
             .LineOperatorClient()

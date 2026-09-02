@@ -1,6 +1,7 @@
 using System.Net;
 using FHS.Api.Data.Entities;
 using Fhs.IntegrationTests.Extensions;
+using Fhs.IntegrationTests.Handlers;
 using Fhs.IntegrationTests.Snapshots;
 
 namespace Fhs.IntegrationTests.Features.Stations;
@@ -18,7 +19,7 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
         var code = adminClient.UniqueCode("ST");
         var name = $"{code} assembly bay";
 
-        var stationId = await adminClient.CreateStationAsync(code, ct, name);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, name);
 
         var first = await adminClient.PostAsync(EndpointRoute(stationId), null, ct);
         var second = await adminClient.PostAsync(EndpointRoute(stationId), null, ct);
@@ -52,7 +53,11 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.AdminClient();
-        var stationId = await adminClient.CreateStationAsync(adminClient.UniqueCode("ST"), ct);
+        var stationId = await StationsHandler.CreateStationAsync(
+            adminClient,
+            adminClient.UniqueCode("ST"),
+            ct
+        );
 
         var response = await factory.LineOperatorClient().PostAsync(EndpointRoute(stationId), null, ct);
 

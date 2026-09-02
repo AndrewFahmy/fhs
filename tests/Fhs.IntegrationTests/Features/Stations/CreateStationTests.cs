@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FHS.Api.Data.Entities;
 using Fhs.IntegrationTests.Extensions;
+using Fhs.IntegrationTests.Handlers;
 using Fhs.IntegrationTests.Snapshots;
 
 namespace Fhs.IntegrationTests.Features.Stations;
@@ -19,7 +20,7 @@ public sealed class CreateStationTests(FhsApiFactory factory)
         var code = adminClient.UniqueCode("ST");
         var name = $"{code} assembly bay";
 
-        var stationId = await adminClient.CreateStationAsync(code, ct, name);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, name);
 
         // The 409 is the assertion: only a persisted row can collide.
         var duplicate = await adminClient.PostAsJsonAsync(CreateStationEndpoint, new { code, name }, ct);

@@ -4,6 +4,7 @@ using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Snapshots;
+using Fhs.IntegrationTests.Handlers;
 
 namespace Fhs.IntegrationTests.Features.ErrorCodes;
 
@@ -21,7 +22,7 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
         var description = "Paint runs on the outer skin";
 
         // Sends "Critical", not an integer - proves that JsonStringEnumConverter is wired up.
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(code, Severity.Critical, ct, description);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, code, Severity.Critical, ct, description);
 
         var duplicate = await adminClient.PostAsJsonAsync(
             ErrorCodesEndpoint,

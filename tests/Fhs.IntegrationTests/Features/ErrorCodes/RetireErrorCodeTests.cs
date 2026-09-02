@@ -2,6 +2,7 @@ using System.Net;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using Fhs.IntegrationTests.Extensions;
+using Fhs.IntegrationTests.Handlers;
 using Fhs.IntegrationTests.Snapshots;
 
 namespace Fhs.IntegrationTests.Features.ErrorCodes;
@@ -19,7 +20,13 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
         var code = adminClient.UniqueCode("EC");
         var description = "Paint runs on the outer skin";
 
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(code, Severity.Major, ct, description);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
+            adminClient,
+            code,
+            Severity.Major,
+            ct,
+            description
+        );
 
         var first = await adminClient.PostAsync(EndpointRoute(errorCodeId), null, ct);
         var second = await adminClient.PostAsync(EndpointRoute(errorCodeId), null, ct);
@@ -57,7 +64,8 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.AdminClient();
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
+            adminClient,
             adminClient.UniqueCode("EC"),
             Severity.Major,
             ct
