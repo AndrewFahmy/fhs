@@ -18,25 +18,17 @@ internal static class DefectsHandler
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
 
-        var stationId = await adminClient.CreateStationAsync(stationCode, ct);
-        var errorCodeId = await adminClient.CreateErrorCodeAsync(errorCode, Severity.Major, ct);
-
-        var response = await client.PostAsJsonAsync(
-            "/defects",
-            new
-            {
-                stationCode,
-                errorCode,
-                description = "Scratch on door panel"
-            },
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
+            adminClient,
+            errorCode,
+            Severity.Major,
             ct
         );
 
-        response.EnsureSuccessStatusCode();
+        var defectId = await RaiseDefectAsync(client, stationCode, errorCode, "Scratch on door panel", ct);
 
-        var created = await response.Content.ReadFromJsonAsync<CreateDefectResponse>(ct);
-
-        return (created!.DefectId, stationId, errorCodeId);
+        return (defectId, stationId, errorCodeId);
     }
 
     public static async Task<Guid> RaiseDefectAsync(
