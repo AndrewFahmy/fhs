@@ -10,8 +10,10 @@ public sealed class RetireErrorCodeEndpoint : IEndpoint
 {
     private static readonly Chain<RetireErrorCodeState> Handle = ChainFactory
         .For<RetireErrorCodeState>()
+        .Link<ResolveActor>()
         .Link<LoadAndEnsureErrorCodeIsActive>()
         .Link<MarkErrorCodeAsRetired>()
+        .Link<RecordDomainEvents>()
         .Link<SaveChanges>()
         .Build();
 
