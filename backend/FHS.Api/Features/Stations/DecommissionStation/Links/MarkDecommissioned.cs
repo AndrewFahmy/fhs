@@ -6,8 +6,9 @@ using FHS.Chain.Primitives;
 
 namespace FHS.Api.Features.Stations;
 
-[Requires(nameof(DecommissionStationState.Station))]
-public sealed class MarkDecommissioned(FhsCommandDbContext db) : ILink<DecommissionStationState>
+[Requires(nameof(DecommissionStationState.Actor), nameof(DecommissionStationState.Station))]
+public sealed class MarkDecommissioned(FhsCommandDbContext db, TimeProvider clock)
+    : ILink<DecommissionStationState>
 {
     public ValueTask<LinkResult> RunAsync(DecommissionStationState state, CancellationToken ct)
     {
@@ -15,6 +16,8 @@ public sealed class MarkDecommissioned(FhsCommandDbContext db) : ILink<Decommiss
         station.IsActive = false;
 
         db.Set<Station>().Update(station);
+
+        state.Events.Add(new StationDecommissioned(station.Id, state.Actor.Id, clock.GetUtcNow()));
 
         return ValueTask.FromResult(LinkResult.Continue);
     }

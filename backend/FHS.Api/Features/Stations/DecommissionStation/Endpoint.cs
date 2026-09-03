@@ -10,8 +10,10 @@ public sealed class DecommissionStationEndpoint : IEndpoint
 {
     private static readonly Chain<DecommissionStationState> Handle = ChainFactory
         .For<DecommissionStationState>()
+        .Link<ResolveActor>()
         .Link<LoadAndEnsureStationIsActive>()
         .Link<MarkDecommissioned>()
+        .Link<RecordDomainEvents>()
         .Link<SaveChanges>()
         .Build();
 
