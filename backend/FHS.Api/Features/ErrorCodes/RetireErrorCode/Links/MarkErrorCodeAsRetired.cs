@@ -7,7 +7,7 @@ using FHS.Chain.Primitives;
 
 namespace FHS.Api.Features.ErrorCodes.Links;
 
-[Requires(nameof(RetireErrorCodeState.ErrorCode))]
+[Requires(nameof(RetireErrorCodeState.Actor), nameof(RetireErrorCodeState.ErrorCode))]
 public sealed class MarkErrorCodeAsRetired(FhsCommandDbContext db, TimeProvider clock)
     : ILink<RetireErrorCodeState>
 {
