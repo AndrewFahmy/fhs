@@ -49,5 +49,5 @@ public sealed class BadHttpRequestExceptionHandler(ILogger<BadHttpRequestExcepti
     private static string Describe(string? path) =>
         path is not null
             ? $"The request body could not be read at '{path}'."
-            : "The request body could not be read.";
+            : "The request could not be read.";
 }
