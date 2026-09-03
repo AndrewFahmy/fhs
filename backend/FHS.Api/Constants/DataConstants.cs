@@ -19,5 +19,10 @@ public static partial class AppConstants
         public const int ErrorCodeMaxLength = 50;
         public const int StationCodeMaxLength = 50;
         public const int StationNameMaxLength = 200;
+        public const int CustomerCodeMaxLength = 50;
+        public const int CustomerNameMaxLength = 200;
+        public const int EscapeDescriptionMaxLength = 500;
+        public const int EscapeResolutionMaxLength = 500;
+        public const int EscapeSeverityMaxLength = 20;
     }
 }

@@ -7,5 +7,9 @@ public static partial class AppConstants
         public const string ErrorCodesGroupName = "Error Codes";
 
         public const string StationsGroupName = "Stations";
+
+        public const string CustomersGroupName = "Customers";
+
+        public const string EscapesGroupName = "Escapes";
     }
 }
