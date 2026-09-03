@@ -4,8 +4,8 @@ using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
 using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Snapshots;
 using Fhs.IntegrationTests.Handlers;
+using Fhs.IntegrationTests.Snapshots;
 
 namespace Fhs.IntegrationTests.Features.Defects;
 
@@ -54,8 +54,12 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
 
         Assert.Equal(
             [
-                OutboxMessageSnapshot.For<DefectRaised>(raisedAt),
-                OutboxMessageSnapshot.For<DefectResolved>(resolvedAt)
+                OutboxMessageSnapshot.For(
+                    new DefectRaised(defectId, stationId, errorCodeId, Severity.Major, raisedAt)
+                ),
+                OutboxMessageSnapshot.For(
+                    new DefectResolved(defectId, AppConstants.Data.LineOperatorActorId, resolvedAt)
+                )
             ],
             [.. (await factory.OutboxForAsync(defectId, ct)).Select(OutboxMessageSnapshot.From)]
         );

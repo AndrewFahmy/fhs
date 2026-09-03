@@ -1,5 +1,6 @@
 using System.Net;
 using FHS.Api.Data.Entities;
+using FHS.Api.Features.Stations;
 using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Handlers;
 using Fhs.IntegrationTests.Snapshots;
@@ -18,6 +19,7 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
         var adminClient = factory.AdminClient();
         var code = adminClient.UniqueCode("ST");
         var name = $"{code} assembly bay";
+        var decommissionedAt = factory.Clock.GetUtcNow();
 
         var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, name);
 
@@ -32,6 +34,14 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.Conflict, "Stations.AlreadyDecommissioned"),
             await ProblemSnapshot.FromAsync(second, ct)
+        );
+        Assert.Equal(
+            [
+                OutboxMessageSnapshot.For(
+                    new StationDecommissioned(stationId, AppConstants.Data.AdminActorId, decommissionedAt)
+                )
+            ],
+            [.. (await factory.OutboxForAsync(stationId, ct)).Select(OutboxMessageSnapshot.From)]
         );
     }
 

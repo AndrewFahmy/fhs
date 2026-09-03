@@ -1,6 +1,7 @@
 using System.Net;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
+using FHS.Api.Features.ErrorCodes;
 using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Handlers;
 using Fhs.IntegrationTests.Snapshots;
@@ -19,6 +20,7 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
         var adminClient = factory.AdminClient();
         var code = adminClient.UniqueCode("EC");
         var description = "Paint runs on the outer skin";
+        var retiredAt = factory.Clock.GetUtcNow();
 
         var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
             adminClient,
@@ -43,6 +45,14 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.Conflict, "ErrorCodes.AlreadyRetired"),
             await ProblemSnapshot.FromAsync(second, ct)
+        );
+        Assert.Equal(
+            [
+                OutboxMessageSnapshot.For(
+                    new ErrorCodeRetired(errorCodeId, AppConstants.Data.AdminActorId, retiredAt)
+                )
+            ],
+            [.. (await factory.OutboxForAsync(errorCodeId, ct)).Select(OutboxMessageSnapshot.From)]
         );
     }
 

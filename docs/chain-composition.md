@@ -4,7 +4,7 @@
 > out whether this technique holds up under real features. v1 deliberately builds the smallest kernel that
 > can answer that question — roughly **half** the surface of the original design.
 >
-> The kernel, the foundation, six endpoints across Defects, Stations and Error Codes, seven architecture
+> The kernel, the foundation, ten endpoints across Defects, Stations and Error Codes, seven architecture
 > tests and an integration suite on Testcontainers Postgres exist, and the API has been run end to end
 > against Postgres and Keycloak under Aspire. **All four of §12's load-bearing assumptions are settled** —
 > the contravariant conversions the whole global-link idea rests on do work, at compile time and at run
@@ -23,8 +23,9 @@
 > lists every deferral and the reason for it, which was the only part being read. The successor, when v1 is
 > done, is a new document written incrementally against this one — not that file restored.
 >
-> §13 holds the criteria for keeping or abandoning the approach, to be reviewed once roughly ten endpoints
-> exist. Six do.
+> §13 held the criteria for keeping or abandoning the approach, to be reviewed once roughly ten endpoints
+> existed. **That review ran on 2026-09-03 and the verdict is keep** — the measured rows, the three
+> decisions it produced and the one row worth worrying about are in §13.
 
 ---
 
@@ -684,14 +685,20 @@ short-circuiting link calls `Produce()` and returns `Done`.
 The original wrapped endpoint registration in a generic `MapChain(route, chain, stateFactory, resultMapper)`
 helper. Its overload set has to cover route shape × parameter binding × result mapping, and §9's two
 example features already needed two different signatures. v1 writes the endpoint as a plain minimal API
-delegate — six lines, binds anything, zero kernel surface (§9). Extract a helper later, once the real
-route shapes are known, which is the right time to design its overloads anyway.
+delegate — six lines, binds anything, zero kernel surface (§9).
+
+**This is now a decision rather than a deferral** (2026-09-03, §13 review). With ten endpoints written the
+route shapes are known, which was the stated trigger — and the answer is no. A `MapChain` helper would
+absorb the `runner.RunAsync(Handle, …)` line, and that line is where the endpoint file stops being a route
+registration and starts being the feature. §2's claim is that the declaration at the endpoint tells you
+what the feature does; hiding the invocation behind a helper moves the reader one indirection further from
+the `.Link<>()` list that is the entire point. The six lines are the deliverable, not the overhead.
 
 The *result mapping* third of that helper already exists without the other two, as extension members on
 `Result<T>` in `FHS.Api/Extensions/ResultExtensions.cs` — `Match`, `ToOk`, `ToNoContent`, `ToCreated`.
 They compose with a plain `MapPost`, so the endpoint stays a normal minimal API delegate and still gets
-one-line result handling. **The same set is needed on the non-generic `Result`** for `Chain<TState>`
-features, which currently have no `.ToNoContent()`.
+one-line result handling. The non-generic `Result` carries its own `Match` and `ToNoContent`, which is what
+`Chain<TState>` features return through — an earlier gap here, now closed.
 
 ### Kernel surface
 
@@ -883,6 +890,15 @@ than validated. It differs in exactly two ways: the link takes `FhsQueryDbContex
 `FhsCommandDbContext`, and the State carries **no capability interface**. That second one is Rule 9 in
 practice — `IHasRequest` exists for `ValidateRequestInput` and nothing else, so a read that runs no
 validation link declares a plain `Request` property and adds the interface on the day it needs one.
+
+**Reads are paged only when the collection is unbounded.** `GET /defects` returns
+`PagedResponse<DefectListItem>` because the defect table grows without limit; `GET /stations` and
+`GET /error-codes` return a bare `IReadOnlyList<T>` because they are reference data, bounded by the
+physical plant and the fault taxonomy. This is a deliberate asymmetry, decided on 2026-09-03: those two
+endpoints are what the SPA's dropdowns bind to, so wrapping them in a paged envelope would immediately
+require a second, unpaged endpoint alongside each — paying for the envelope twice and getting nothing.
+The rule for the next read endpoint is that question, not consistency for its own sake: **can this
+collection grow without bound? Then page it.** Filtering is orthogonal and both kinds get it.
 
 Endpoints implement `IEndpoint`, a one-member interface with a `static abstract MapEndpoint`, and
 `app.MapApiEndpoints()` reflects over the assembly to call each one. That is the *registration* third of the
@@ -1213,6 +1229,40 @@ read chains are one link by construction, so including them would drag the media
 that says nothing about whether the pattern fits. Measure the median over write chains, and watch the
 read side's file count under the ceremony-floor risk below instead.
 
+### The ten-endpoint review (2026-09-03)
+
+The trigger in the paragraph above fired: the read side took the count to ten. **The verdict is keep**,
+and the six measurable rows are the reason — not one of them points the other way.
+
+| Signal | Measured | |
+| --- | --- | --- |
+| Escape-hatch count | **0.** Every route is an `IEndpoint` with a chain; the only `Map*` calls outside a slice are `MapDefaultEndpoints`/`MapApiEndpoints` | Keep |
+| Kernel size | **Unchanged since 2026-08-29** — not one commit to `backend/FHS.Chain` across six new endpoints. The freeze held without being enforced | Keep |
+| Capability interfaces | **3**, the v1 seed set, none added | Keep |
+| Median write-chain length | **4** (7, 6, 4, 4, 3, 3) | Keep |
+| Rule 3 pressure | **0.** Not one conditional-skip link in any slice | Keep |
+| `[Requires]`/`[Produces]` ceremony | **10 attributes across 6 links**, every one a real hand-off. The four read chains carry none, because a one-link chain has no boundary to declare | Keep |
+
+The three judgment rows are recorded as they stand rather than scored: the explain-it-in-two-minutes test
+has not been run against a second developer, because there is not one yet; and the production-stack-trace
+row is unanswerable while there is no production. Both are live again at the next review.
+
+**The strongest single result is the kernel row.** The worry in §13's first standing risk is that you end
+up maintaining a framework — that features arrive and the kernel grows to meet them. Six endpoints across
+three aggregates, two chain kinds and both a read and a write side arrived, and the kernel did not move at
+all. That is the difference between a kernel that fits and one that is being bent.
+
+**The weakest is the ceremony floor**, and it is exactly where §13 predicted. Read slices are four files
+each against six or seven for writes, and reads are now four of ten slices — for a system whose users
+mostly *look* at defects, that ratio moves the wrong way from here. Nothing is being done about it yet;
+the deferred `feature-slice` scaffold (§14) is the answer if it starts to bite, and this is the row to
+watch at the next review.
+
+Three decisions came out of the review, and all three are recorded where they belong rather than here:
+`MapChain` was decided against rather than deferred again (§7, §14); read paging was settled as a
+bounded/unbounded question rather than a consistency one (§9); and the two reference-data commands got the
+actor and the domain event they were missing (§15).
+
 ### Standing risks
 
 - **You are maintaining a framework.** Cap it, freeze it after v1. Growth is the smell that says the
@@ -1251,7 +1301,7 @@ wrong. They are in the kernel as built; see §7 for what they cost and what they
 | `IChainWrapper`, `ChainRun` | Exactly two wrappers exist, neither varies per feature, both are five lines inline (§6) | A third around-concern, or one that must vary per chain |
 | `ITransactional` + explicit transaction wrapper | Multi-table atomic writes are the exception; no feature needs one | A feature needing several saves to succeed or roll back together. Note: with `EnableRetryOnFailure` on Npgsql, manual `BeginTransaction` throws unless it goes through `ExecutionStrategy.ExecuteInTransaction` |
 | `IChainCatalog`, `GET /_chains` | Its two jobs were the wiring check (now in `Build()`) and a dev endpoint | Wanting the dev endpoint. `Describe()` already exists, so this is small |
-| `MapChain` | Overload set is route shape × binding × result mapping; two example features already needed two signatures | Once several endpoints exist and the real route shapes are known |
+| ~~`MapChain`~~ | **Decided against, 2026-09-03** — its trigger fired at ten endpoints and the answer was no. The `runner.RunAsync(Handle, …)` line it would absorb is what keeps the endpoint file the place the feature is legible (§7) | Closed. Reopen only if the endpoint delegates start carrying real logic worth deduplicating |
 | `IHasIdempotencyKey` | Rule 9 — zero users | The second feature that needs idempotent replay |
 | Deriving global links' `Requires`/`Produces` from their capability interface | `[Produces(nameof(IHasActor.Actor))]` gets the same result with no reflection, on about three shared links (§5) | Enough shared links that the attribute becomes real duplication |
 
@@ -1307,12 +1357,47 @@ filter (Rule 7), the `AsNoTracking`-plus-explicit-write convention (Rule 14), an
    production, because `RouteHandlerOptions.ThrowOnBadRequest` defaults to `IsDevelopment()` and nothing
    caught the resulting `BadHttpRequestException`. Both are fixed — the flag is pinned in every
    environment and a `BadHttpRequestExceptionHandler` renders the ProblemDetails.
-2. **The read side** — `GET /defects`, `GET /defects/{id}`, `GET /stations`, `GET /error-codes`, in
-   progress as of 2026-09-01. It is the first use of `FhsQueryDbContext`, which had been registered and
+2. ~~**The read side**~~ — **done** (2026-09-03): `GET /defects`, `GET /defects/{id}`, `GET /stations`,
+   `GET /error-codes`. It is the first use of `FhsQueryDbContext`, which had been registered and
    referenced by nothing since step 3, and writing it is what reversed Rule 1 (§8). Paging is offset-based
    and clamped rather than validated; keyset paging on the v7 `Id` is the escape if the defect table ever
-   outgrows it.
-3. **The §13 review.** The read side takes the endpoint count to ten, which is the trigger.
+   outgrows it. Only `GET /defects` pages at all — see §9 for why the other two do not.
+3. ~~**The §13 review**~~ — **done** (2026-09-03). Verdict: keep. The measured rows and what came out of
+   it are in §13.
+
+**Carried out of the review**, and the only outstanding work:
+
+1. **Actor and domain events on the two reference-data commands.** `RetireErrorCode` and
+   `DecommissionStation` mutate state with no `ResolveActor` and no `RecordDomainEvents`, so nothing
+   records who retired a code or decommissioned a station. Both chains gain `ResolveActor` first and
+   `RecordDomainEvents` before the save, and both states gain `IHasActor` and `IRaisesEvents` — the same
+   shape `ResolveDefect` already has, taking each chain from three links to five.
+
+   **The actor is carried on the event, not on the entity.** `Station` and `ErrorCode` get no
+   `RetiredBy`/`DecommissionedBy` columns, so there is no migration: the outbox row is the audit record.
+   That is the cheaper half of the decision and it is reversible — if "who decommissioned this station"
+   turns out to be a query rather than an audit trail, the columns are added then, against a table that
+   already has the events to backfill from.
+
+2. **Assert the outbox payload, not just its type.** `OutboxMessageSnapshot` excluded `Payload`, so every
+   outbox assertion in the suite proved only that an event of some type was recorded at some time — never
+   who did it or what it carried. That was tolerable while the actor on an event was incidental; item 1
+   makes it the entire point, so the gap closes with it.
+
+   The snapshot gains a `Payload` member holding the deserialized `IDomainEvent`, and `From` resolves the
+   concrete type by name off `OutboxMessage.Type` before deserializing with the same options the API
+   serialized under — web defaults plus `JsonStringEnumConverter`, reused from the test suite's existing
+   `JsonExtensions` rather than redeclared, because the two agreeing is the property under test. Equality
+   works through the interface because every event is a `record`.
+
+   **The durable half is that `Payload` leaves `ExcludedProperties`.** `SnapshotCoverageTests` reflects
+   over every entity property and fails on any the snapshot does not account for, so once the exclusion is
+   gone the payload cannot silently stop being asserted again. The assertion is the fix; the coverage test
+   is what keeps it fixed.
+
+   `For<TEvent>` also stops taking a separate timestamp and reads `OccurredAt` off the event it is given,
+   which removes the one way a call site could previously assert a time that disagreed with the payload
+   beside it.
 
 Link tests were item 2 here and are **cut**, not deferred — see §11 for why and for what it costs.
 

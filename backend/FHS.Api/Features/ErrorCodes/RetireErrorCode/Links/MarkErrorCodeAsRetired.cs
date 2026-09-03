@@ -1,4 +1,3 @@
-using backend.FHS.Api.Features.ErrorCodes;
 using FHS.Api.Data;
 using FHS.Api.Data.Entities;
 using FHS.Chain.Attributes;

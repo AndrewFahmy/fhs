@@ -4,8 +4,8 @@ using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
 using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Snapshots;
 using Fhs.IntegrationTests.Handlers;
+using Fhs.IntegrationTests.Snapshots;
 
 namespace Fhs.IntegrationTests.Features.Defects;
 
@@ -24,7 +24,12 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var errorCode = adminClient.UniqueCode("EC");
 
         var stationId = await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
-        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Critical, ct);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
+            adminClient,
+            errorCode,
+            Severity.Critical,
+            ct
+        );
         var raisedAt = factory.Clock.GetUtcNow();
 
         var response = await factory
@@ -66,7 +71,11 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
 
         var messages = await factory.OutboxForAsync(created.DefectId, ct);
         Assert.Equal(
-            [OutboxMessageSnapshot.For<DefectRaised>(raisedAt)],
+            [
+                OutboxMessageSnapshot.For(
+                    new DefectRaised(created.DefectId, stationId, errorCodeId, Severity.Critical, raisedAt)
+                )
+            ],
             [.. messages.Select(OutboxMessageSnapshot.From)]
         );
 
@@ -169,7 +178,12 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var errorCode = adminClient.UniqueCode("EC");
 
         await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
-        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Major, ct);
+        var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
+            adminClient,
+            errorCode,
+            Severity.Major,
+            ct
+        );
         await ErrorCodesHandler.RetireErrorCodeAsync(adminClient, errorCodeId, ct);
 
         var response = await factory
