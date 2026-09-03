@@ -6,7 +6,7 @@ namespace Fhs.IntegrationTests.Extensions;
 
 internal static class JsonExtensions
 {
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerOptions.Default)
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
     };

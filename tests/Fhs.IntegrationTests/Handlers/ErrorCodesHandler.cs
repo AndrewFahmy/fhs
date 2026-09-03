@@ -41,11 +41,11 @@ internal static class ErrorCodesHandler
 
     public static async Task<IReadOnlyList<ErrorCodeListItem>> GetErrorCodesAsync(
         HttpClient client,
-        bool includeRetired,
+        bool includeInactive,
         CancellationToken ct
     )
     {
-        var response = await client.GetAsync($"/error-codes?includeRetired={includeRetired}", ct);
+        var response = await client.GetAsync($"/error-codes?includeInactive={includeInactive}", ct);
         response.EnsureSuccessStatusCode();
 
         return (await response.ReadAsync<IReadOnlyList<ErrorCodeListItem>>(ct))!;
