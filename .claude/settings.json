@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/backend/**)",
+      "Edit(/infra/**)",
+      "Edit(/frontend/**)",
+      "Edit(/tests/**)",
+      "Edit(/Directory.Build.props)",
+      "Edit(/Directory.Packages.props)",
+      "Edit(/global.json)",
+      "Edit(/FHS.slnx)"
+    ]
+  }
+}
