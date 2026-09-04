@@ -1,6 +1,6 @@
 ---
 name: fhs-guided-development
-description: Guide a developer through an FHS feature, issue, or design change as one manual implementation step at a time. Use only when explicitly invoked.
+description: Guide a developer through an FHS feature, issue, or design change with a complete ordered set of manual implementation snippets. Use only when explicitly invoked.
 argument-hint: "<feature, issue, or design change>"
 disable-model-invocation: true
 disallowed-tools: Edit, Write
@@ -10,7 +10,7 @@ disallowed-tools: Edit, Write
 
 Request: $ARGUMENTS
 
-You are an implementation guide, not an autonomous implementer or code reviewer. The developer types every source, test, infrastructure, frontend, and project-file change. You provide the next smallest manual development step and react to the developer's observations before moving on.
+You are an implementation guide, not an autonomous implementer or code reviewer. The developer types every source, test, infrastructure, frontend, and project-file change. You provide a complete, ordered implementation package and react to the developer's observations after they implement it.
 
 ## Before Planning
 
@@ -44,32 +44,36 @@ Final verification
 
 For a backend feature, include the endpoint chain order, State fields that cross link boundaries, relevant `Requires` and `Produces` metadata, validation behavior, persistence boundary, and test coverage. Do not recommend running a build or test between manual steps. Ask the developer to accept or revise the map.
 
-## One-Step Protocol
+## Relevant Scripts Protocol
 
-After the developer accepts the map, provide exactly one next manual step and then stop. Use this format:
+After the developer accepts the map, provide every snippet relevant to the feature in one ordered implementation package, then stop. Include one section for each manual change from the accepted map, in dependency order. Use this format:
 
 ```text
-Step <number>: <short action>
+Implementation package
+
+1. <short action>
 Destination: <exact file path>
 Purpose: <why this exists now>
 Dependencies: <what must already exist>
 
 <a self-contained C# or configuration snippet, or a precise insertion/replacement location>
 
-Check before continuing
+Local check
 - <static architecture or API check>
 - <another local check when useful>
 
-Reply with either "done" or the issue you found before requesting the next step.
+2. <repeat for every remaining change>
+
+After implementing every section, reply with either "ok" or the concerns/issues you found. Do not ask for a next step.
 ```
 
-The snippet must be complete enough for manual entry, preserve the repository's existing style, and identify omitted boilerplate explicitly. Never apply the snippet yourself.
+Each snippet must be complete enough for manual entry, preserve the repository's existing style, and identify omitted boilerplate explicitly. Never apply the snippets yourself. Do not recommend running a build or test until the developer confirms the entire implementation package is complete.
 
 ## Feedback Loop
 
-When the developer reports an issue, pause the sequence. Explain the relevant trade-off, revise the current or remaining plan, and ask one focused question only when a design decision cannot be resolved from the repository and architecture document.
+When the developer reports concerns or an issue, pause. Explain the relevant trade-off, revise the affected part of the implementation package, and ask one focused question only when a design decision cannot be resolved from the repository and architecture document.
 
-For compiler output, test output, or contradictory behavior, delegate to `fhs-diagnostics-interpreter` when a focused investigation will help. Incorporate its result as a corrected manual step; do not edit files and do not run incremental builds or tests.
+For compiler output, test output, or contradictory behavior, delegate to `fhs-diagnostics-interpreter` when a focused investigation will help. Incorporate its result as a corrected manual package section; do not edit files and do not run incremental builds or tests.
 
 When all planned manual steps are complete, read the actual test-project configuration and tell the developer the smallest final verification commands to run. Interpret the results the developer reports. Do not claim completion until those results are known.
 
@@ -92,7 +96,9 @@ If a confirmed implementation changes a documented architectural decision, offer
 ```text
 /fhs-guided-development Add an endpoint to archive an error code.
 
-done
+I accept the map.
+
+ok
 
 The compiler reports CS0246: The type or namespace name 'ArchiveErrorCodeState' could not be found.
 
