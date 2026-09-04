@@ -17,7 +17,7 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
     public async Task Retires_once_and_then_conflicts()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("EC");
         var description = "Paint runs on the outer skin";
         var retiredAt = factory.Clock.GetUtcNow();
@@ -61,7 +61,7 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await factory.AdminClient().PostAsync(EndpointRoute(Guid.CreateVersion7()), null, ct);
+        var response = await factory.CreateAdminClient().PostAsync(EndpointRoute(Guid.CreateVersion7()), null, ct);
 
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.NotFound, "ErrorCodes.NotFound"),
@@ -73,7 +73,7 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
     public async Task Refuses_a_line_operator_with_403_rather_than_401()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
             adminClient,
             adminClient.UniqueCode("EC"),
@@ -81,7 +81,7 @@ public sealed class RetireErrorCodeTests(FhsApiFactory factory)
             ct
         );
 
-        var response = await factory.LineOperatorClient().PostAsync(EndpointRoute(errorCodeId), null, ct);
+        var response = await factory.CreateLineOperatorClient().PostAsync(EndpointRoute(errorCodeId), null, ct);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }

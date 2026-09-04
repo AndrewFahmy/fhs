@@ -17,7 +17,7 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
     public async Task Persists_the_error_code_and_rejects_a_duplicate_code()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("EC");
         var description = "Paint runs on the outer skin";
 
@@ -54,7 +54,7 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
 
         var response = await factory
-            .AdminClient()
+            .CreateAdminClient()
             .PostAsJsonAsync(
                 ErrorCodesEndpoint,
                 new
@@ -76,7 +76,7 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
     public async Task Rejects_a_severity_name_the_enum_does_not_define()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
 
         var response = await adminClient.PostAsJsonAsync(
             ErrorCodesEndpoint,
@@ -101,7 +101,7 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
     public async Task Rejects_a_severity_number_outside_the_enum()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
 
         var response = await adminClient.PostAsJsonAsync(
             ErrorCodesEndpoint,
@@ -125,7 +125,7 @@ public sealed class CreateErrorCodeTests(FhsApiFactory factory)
     public async Task Refuses_a_line_operator_with_403_rather_than_401()
     {
         var ct = TestContext.Current.CancellationToken;
-        var client = factory.LineOperatorClient();
+        var client = factory.CreateLineOperatorClient();
 
         var response = await client.PostAsJsonAsync(
             ErrorCodesEndpoint,

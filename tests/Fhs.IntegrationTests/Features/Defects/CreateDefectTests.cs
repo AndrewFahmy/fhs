@@ -18,7 +18,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
     public async Task Persists_the_defect_and_records_the_domain_event()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -33,7 +33,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var raisedAt = factory.Clock.GetUtcNow();
 
         var response = await factory
-            .LineOperatorClient()
+            .CreateLineOperatorClient()
             .PostAsJsonAsync(
                 DefectsEndpoint,
                 new
@@ -90,7 +90,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
 
         var response = await factory
-            .LineOperatorClient()
+            .CreateLineOperatorClient()
             .PostAsJsonAsync(
                 DefectsEndpoint,
                 new
@@ -112,13 +112,13 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
     public async Task Returns_404_when_the_station_does_not_exist()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var errorCode = adminClient.UniqueCode("EC");
 
         await ErrorCodesHandler.CreateErrorCodeAsync(adminClient, errorCode, Severity.Major, ct);
 
         var response = await factory
-            .LineOperatorClient()
+            .CreateLineOperatorClient()
             .PostAsJsonAsync(
                 DefectsEndpoint,
                 new
@@ -140,7 +140,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
     public async Task Returns_409_when_the_station_is_decommissioned()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -150,7 +150,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         await StationsHandler.DecommissionStationAsync(adminClient, stationId, ct);
 
         var response = await factory
-            .LineOperatorClient()
+            .CreateLineOperatorClient()
             .PostAsJsonAsync(
                 DefectsEndpoint,
                 new
@@ -172,7 +172,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
     public async Task Returns_409_when_the_error_code_is_retired()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -187,7 +187,7 @@ public sealed class CreateDefectTests(FhsApiFactory factory)
         await ErrorCodesHandler.RetireErrorCodeAsync(adminClient, errorCodeId, ct);
 
         var response = await factory
-            .LineOperatorClient()
+            .CreateLineOperatorClient()
             .PostAsJsonAsync(
                 DefectsEndpoint,
                 new

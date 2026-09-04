@@ -14,8 +14,8 @@ public sealed class GetDefectTests(FhsApiFactory factory)
     public async Task Returns_the_whole_detail_for_an_open_defect()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
-        var client = factory.LineOperatorClient();
+        var adminClient = factory.CreateAdminClient();
+        var client = factory.CreateLineOperatorClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -70,7 +70,7 @@ public sealed class GetDefectTests(FhsApiFactory factory)
     public async Task Reports_the_resolver_once_the_defect_is_resolved()
     {
         var ct = TestContext.Current.CancellationToken;
-        var client = factory.LineOperatorClient();
+        var client = factory.CreateLineOperatorClient();
         var (defectId, _, _) = await DefectsHandler.RaiseDefectAsync(client, factory, ct);
 
         factory.Clock.Advance(TimeSpan.FromMinutes(5));
@@ -92,7 +92,7 @@ public sealed class GetDefectTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await factory.LineOperatorClient().GetAsync($"/defects/{Guid.CreateVersion7()}", ct);
+        var response = await factory.CreateLineOperatorClient().GetAsync($"/defects/{Guid.CreateVersion7()}", ct);
 
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.NotFound, "Defects.NotFound"),

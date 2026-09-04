@@ -18,7 +18,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
     public async Task Marks_the_defect_resolved_and_records_the_domain_event()
     {
         var ct = TestContext.Current.CancellationToken;
-        var client = factory.LineOperatorClient();
+        var client = factory.CreateLineOperatorClient();
 
         var raisedAt = factory.Clock.GetUtcNow();
         var (defectId, stationId, errorCodeId) = await DefectsHandler.RaiseDefectAsync(client, factory, ct);
@@ -69,7 +69,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
     public async Task Returns_409_when_the_defect_is_already_resolved()
     {
         var ct = TestContext.Current.CancellationToken;
-        var client = factory.LineOperatorClient();
+        var client = factory.CreateLineOperatorClient();
         var (defectId, _, _) = await DefectsHandler.RaiseDefectAsync(client, factory, ct);
         var body = new { resolution = "Buffed and re-inspected" };
 
@@ -88,7 +88,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
 
         var response = await factory
-            .LineOperatorClient()
+            .CreateLineOperatorClient()
             .PostAsJsonAsync(EndpointRoute(Guid.CreateVersion7()), new { resolution = "x" }, ct);
 
         Assert.Equal(

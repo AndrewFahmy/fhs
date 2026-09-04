@@ -11,7 +11,7 @@ public sealed class GetStationsTests(FhsApiFactory factory)
     public async Task Lists_active_stations_in_code_order()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var prefix = adminClient.UniqueCode("ST");
 
         // Created out of order so the ordering assertion means something, and suffixed with letters
@@ -35,7 +35,7 @@ public sealed class GetStationsTests(FhsApiFactory factory)
     public async Task Hides_decommissioned_stations_unless_asked_for_them()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("ST");
 
         var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, "Retired bay");

@@ -12,7 +12,7 @@ public sealed class GetErrorCodesTests(FhsApiFactory factory)
     public async Task Lists_active_error_codes_in_code_order()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var prefix = adminClient.UniqueCode("EC");
 
         await ErrorCodesHandler.CreateErrorCodeAsync(
@@ -54,7 +54,7 @@ public sealed class GetErrorCodesTests(FhsApiFactory factory)
     public async Task Hides_retired_error_codes_unless_asked_for_them()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("EC");
 
         var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(

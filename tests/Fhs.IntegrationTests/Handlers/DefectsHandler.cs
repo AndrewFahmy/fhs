@@ -14,7 +14,7 @@ internal static class DefectsHandler
         CancellationToken ct
     )
     {
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
 

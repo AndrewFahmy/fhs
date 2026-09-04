@@ -5,32 +5,31 @@ using Fhs.IntegrationTests.Extensions;
 using Fhs.IntegrationTests.Handlers;
 using Fhs.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Stations;
+namespace Fhs.IntegrationTests.Features.Customers;
 
 [Collection(nameof(FhsApiCollection))]
-public sealed class CreateStationTests(FhsApiFactory factory)
+public sealed class CreateCustomerTests(FhsApiFactory factory)
 {
-    private const string CreateStationEndpoint = "/stations";
+    private const string CreateCustomerEndpoint = "/customers";
 
     [Fact]
-    public async Task Persists_the_station_and_rejects_a_duplicate_code()
+    public async Task Persists_the_customer_and_rejects_a_duplicate_code()
     {
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.CreateAdminClient();
-        var code = adminClient.UniqueCode("ST");
-        var name = $"{code} assembly bay";
+        var code = adminClient.UniqueCode("CU");
+        var name = $"{code} motors";
 
-        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, name);
+        var customerId = await CustomersHandler.CreateCustomerAsync(adminClient, code, ct, name);
 
-        // The 409 is the assertion: only a persisted row can collide.
-        var duplicate = await adminClient.PostAsJsonAsync(CreateStationEndpoint, new { code, name }, ct);
+        var duplicate = await adminClient.PostAsJsonAsync(CreateCustomerEndpoint, new { code, name }, ct);
 
-        var station = await factory.FindAsync<Station>(stationId, ct);
-        Assert.NotNull(station);
+        var customer = await factory.FindAsync<Customer>(customerId, ct);
+        Assert.NotNull(customer);
 
-        Assert.Equal(new StationSnapshot(code, name, IsActive: true), StationSnapshot.From(station));
+        Assert.Equal(new CustomerSnapshot(code, name, IsActive: true), CustomerSnapshot.From(customer));
         Assert.Equal(
-            new ProblemSnapshot(HttpStatusCode.Conflict, "Stations.CodeAlreadyExists"),
+            new ProblemSnapshot(System.Net.HttpStatusCode.Conflict, "Customers.CodeAlreadyExists"),
             await ProblemSnapshot.FromAsync(duplicate, ct)
         );
     }
@@ -42,7 +41,7 @@ public sealed class CreateStationTests(FhsApiFactory factory)
 
         var response = await factory
             .CreateAdminClient()
-            .PostAsJsonAsync(CreateStationEndpoint, new { code = "", name = "" }, ct);
+            .PostAsJsonAsync(CreateCustomerEndpoint, new { code = "", name = "" }, ct);
 
         Assert.Equal(
             new ValidationProblemSnapshot(HttpStatusCode.BadRequest, "Validation.Failed", ErrorCount: 2),
@@ -55,9 +54,9 @@ public sealed class CreateStationTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var client = factory.CreateLineOperatorClient();
-        var code = client.UniqueCode("ST");
+        var code = client.UniqueCode("CU");
 
-        var response = await client.PostAsJsonAsync(CreateStationEndpoint, new { code, name = code }, ct);
+        var response = await client.PostAsJsonAsync(CreateCustomerEndpoint, new { code, name = code }, ct);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -67,9 +66,9 @@ public sealed class CreateStationTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var client = factory.CreateAnonymousClient();
-        var code = client.UniqueCode("ST");
+        var code = client.UniqueCode("CU");
 
-        var response = await client.PostAsJsonAsync(CreateStationEndpoint, new { code, name = code }, ct);
+        var response = await client.PostAsJsonAsync(CreateCustomerEndpoint, new { code, name = code }, ct);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

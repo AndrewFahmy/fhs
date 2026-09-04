@@ -16,7 +16,7 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
     public async Task Decommissions_once_and_then_conflicts()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("ST");
         var name = $"{code} assembly bay";
         var decommissionedAt = factory.Clock.GetUtcNow();
@@ -50,7 +50,7 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await factory.AdminClient().PostAsync(EndpointRoute(Guid.CreateVersion7()), null, ct);
+        var response = await factory.CreateAdminClient().PostAsync(EndpointRoute(Guid.CreateVersion7()), null, ct);
 
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.NotFound, "Stations.NotFound"),
@@ -62,14 +62,14 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
     public async Task Refuses_a_line_operator_with_403_rather_than_401()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
+        var adminClient = factory.CreateAdminClient();
         var stationId = await StationsHandler.CreateStationAsync(
             adminClient,
             adminClient.UniqueCode("ST"),
             ct
         );
 
-        var response = await factory.LineOperatorClient().PostAsync(EndpointRoute(stationId), null, ct);
+        var response = await factory.CreateLineOperatorClient().PostAsync(EndpointRoute(stationId), null, ct);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }

@@ -17,8 +17,8 @@ public sealed class GetDefectsTests(FhsApiFactory factory)
     public async Task Lists_the_defects_for_a_station_newest_first()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
-        var client = factory.LineOperatorClient();
+        var adminClient = factory.CreateAdminClient();
+        var client = factory.CreateLineOperatorClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -60,8 +60,8 @@ public sealed class GetDefectsTests(FhsApiFactory factory)
     public async Task Pages_through_the_results_and_reports_the_total()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
-        var client = factory.LineOperatorClient();
+        var adminClient = factory.CreateAdminClient();
+        var client = factory.CreateLineOperatorClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -97,7 +97,7 @@ public sealed class GetDefectsTests(FhsApiFactory factory)
     public async Task Clamps_the_page_size_and_echoes_the_value_it_used(string query, int expectedPageSize)
     {
         var ct = TestContext.Current.CancellationToken;
-        var client = factory.LineOperatorClient();
+        var client = factory.CreateLineOperatorClient();
         var stationCode = client.UniqueCode("ST");
 
         var page = await DefectsHandler.GetDefectsAsync(client, $"stationCode={stationCode}&{query}", ct);
@@ -112,8 +112,8 @@ public sealed class GetDefectsTests(FhsApiFactory factory)
     public async Task Filters_by_severity()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
-        var client = factory.LineOperatorClient();
+        var adminClient = factory.CreateAdminClient();
+        var client = factory.CreateLineOperatorClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var minorCode = adminClient.UniqueCode("EC");
@@ -140,8 +140,8 @@ public sealed class GetDefectsTests(FhsApiFactory factory)
     public async Task Filters_by_resolution_state()
     {
         var ct = TestContext.Current.CancellationToken;
-        var adminClient = factory.AdminClient();
-        var client = factory.LineOperatorClient();
+        var adminClient = factory.CreateAdminClient();
+        var client = factory.CreateLineOperatorClient();
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
@@ -183,7 +183,7 @@ public sealed class GetDefectsTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await factory.LineOperatorClient().GetAsync($"{DefectsEndpoint}?severity=nope", ct);
+        var response = await factory.CreateLineOperatorClient().GetAsync($"{DefectsEndpoint}?severity=nope", ct);
 
         // ThrowOnBadRequest is pinned on, so a query-string binding failure reaches
         // BadHttpRequestExceptionHandler instead of escaping as a bodiless 400 or a 500 in development.
