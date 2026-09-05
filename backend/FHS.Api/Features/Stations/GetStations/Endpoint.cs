@@ -25,6 +25,8 @@ public sealed class GetStationsEndpoint : IEndpoint
             )
             .WithName("Get Stations")
             .WithTags(AppConstants.Endpoints.StationsGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<IReadOnlyList<StationListItem>>(StatusCodes.Status200OK)
+            .ProducesProblems(StatusCodes.Status400BadRequest);
     }
 }

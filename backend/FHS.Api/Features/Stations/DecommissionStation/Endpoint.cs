@@ -30,6 +30,9 @@ public sealed class DecommissionStationEndpoint : IEndpoint
             )
             .WithName("Decommission Station")
             .WithTags(AppConstants.Endpoints.StationsGroupName)
-            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblems(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
     }
 }

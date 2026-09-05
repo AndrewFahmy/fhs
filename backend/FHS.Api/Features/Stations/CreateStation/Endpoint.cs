@@ -29,6 +29,9 @@ public sealed class CreateStationEndpoint : IEndpoint
             )
             .WithName("Create Station")
             .WithTags(AppConstants.Endpoints.StationsGroupName)
-            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy)
+            .Produces<CreateStationResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblems(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
     }
 }
