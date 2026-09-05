@@ -49,7 +49,11 @@ var app = builder.Build();
         await scope.ServiceProvider.GetRequiredService<FhsCommandDbContext>().Database.MigrateAsync();
 
         app.MapOpenApi();
-        app.MapScalarApiReference();
+        app.MapScalarApiReference(options =>
+        {
+            options.HideModels();
+            options.WithTheme(ScalarTheme.DeepSpace);
+        });
     }
 
     app.UseExceptionHandler();
