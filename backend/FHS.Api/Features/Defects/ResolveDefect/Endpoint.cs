@@ -31,6 +31,12 @@ public sealed class ResolveDefectEndpoint : IEndpoint
             )
             .WithName("Resolve Defect")
             .WithTags(AppConstants.Endpoints.DefectsGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblems(
+                StatusCodes.Status400BadRequest,
+                StatusCodes.Status404NotFound,
+                StatusCodes.Status409Conflict
+            );
     }
 }

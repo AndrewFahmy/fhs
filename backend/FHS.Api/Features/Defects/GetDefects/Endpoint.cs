@@ -26,6 +26,8 @@ public sealed class GetDefectsEndpoint : IEndpoint
             )
             .WithName("Get Defects")
             .WithTags(AppConstants.Endpoints.DefectsGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<PagedResponse<DefectListItem>>(StatusCodes.Status200OK)
+            .ProducesProblems(StatusCodes.Status400BadRequest);
     }
 }

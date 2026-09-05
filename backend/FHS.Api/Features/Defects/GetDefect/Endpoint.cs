@@ -25,6 +25,8 @@ public sealed class GetDefectEndpoint : IEndpoint
             )
             .WithName("Get Defect Details")
             .WithTags(AppConstants.Endpoints.DefectsGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<DefectDetailResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

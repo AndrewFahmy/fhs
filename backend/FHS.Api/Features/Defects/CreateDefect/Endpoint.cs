@@ -32,6 +32,12 @@ public sealed class CreateDefectEndpoint : IEndpoint
             )
             .WithName("Create Defect")
             .WithTags(AppConstants.Endpoints.DefectsGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<CreateDefectResponse>(StatusCodes.Status201Created)
+            .ProducesProblems(
+                StatusCodes.Status400BadRequest,
+                StatusCodes.Status404NotFound,
+                StatusCodes.Status409Conflict
+            );
     }
 }

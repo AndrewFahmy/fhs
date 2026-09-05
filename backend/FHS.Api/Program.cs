@@ -6,6 +6,7 @@ using FHS.Chain;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var assemblyReference = typeof(Program).Assembly;
@@ -37,6 +38,10 @@ var assemblyReference = typeof(Program).Assembly;
         .AddValidationByAssembly(assemblyReference)
         .AddOpenApiDocument()
         .AddChain(assemblyReference);
+
+    builder.Host.UseSerilog(
+        (context, configuration) => configuration.ReadFrom.Configuration(context.Configuration)
+    );
 }
 
 var app = builder.Build();
