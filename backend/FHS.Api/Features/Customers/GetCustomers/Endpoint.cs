@@ -26,6 +26,8 @@ public sealed class GetCustomersEndpoint : IEndpoint
             )
             .WithName("Get Customers")
             .WithTags(AppConstants.Endpoints.CustomersGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<IReadOnlyList<CustomerListItem>>(StatusCodes.Status200OK)
+            .ProducesProblems(StatusCodes.Status404NotFound);
     }
 }

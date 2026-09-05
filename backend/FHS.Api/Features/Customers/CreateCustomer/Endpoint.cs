@@ -29,6 +29,9 @@ public sealed class CreateCustomerEndpoint : IEndpoint
             )
             .WithName("Create Customer")
             .WithTags(AppConstants.Endpoints.CustomersGroupName)
-            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy)
+            .Produces<CreateCustomerResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblems(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
     }
 }

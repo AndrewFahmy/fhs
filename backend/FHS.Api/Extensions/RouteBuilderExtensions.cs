@@ -35,7 +35,7 @@ public static class RouteBuilderExtensions
 
             foreach (var endpoint in endpoints)
             {
-                mappingMethodInfo.MakeGenericMethod(endpoint).Invoke(null, [app]);
+                mappingMethodInfo.MakeGenericMethod(endpoint).Invoke(null, [group]);
             }
         }
     }
