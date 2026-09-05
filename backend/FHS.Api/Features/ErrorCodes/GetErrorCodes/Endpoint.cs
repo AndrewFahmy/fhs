@@ -26,6 +26,8 @@ public sealed class GetErrorCodesEndpoint : IEndpoint
             )
             .WithName("Get Error Codes")
             .WithTags(AppConstants.Endpoints.ErrorCodesGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<IReadOnlyList<ErrorCodeListItem>>(StatusCodes.Status200OK)
+            .ProducesProblems(StatusCodes.Status400BadRequest);
     }
 }

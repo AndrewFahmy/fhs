@@ -30,6 +30,9 @@ public sealed class RetireErrorCodeEndpoint : IEndpoint
             )
             .WithName("Retire Error Code")
             .WithTags(AppConstants.Endpoints.ErrorCodesGroupName)
-            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblems(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
     }
 }

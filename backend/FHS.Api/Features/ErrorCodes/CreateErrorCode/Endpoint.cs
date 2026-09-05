@@ -29,6 +29,9 @@ public sealed class CreateErrorCodeEndpoint : IEndpoint
             )
             .WithName("Create Error Code")
             .WithTags(AppConstants.Endpoints.ErrorCodesGroupName)
-            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy);
+            .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy)
+            .Produces<CreateErrorCodeResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblems(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
     }
 }
