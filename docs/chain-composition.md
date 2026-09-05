@@ -4,11 +4,11 @@
 > out whether this technique holds up under real features. v1 deliberately builds the smallest kernel that
 > can answer that question — roughly **half** the surface of the original design.
 >
-> The kernel, the foundation, ten endpoints across Defects, Stations and Error Codes, seven architecture
-> tests and an integration suite on Testcontainers Postgres exist, and the API has been run end to end
-> against Postgres and Keycloak under Aspire. **All four of §12's load-bearing assumptions are settled** —
-> the contravariant conversions the whole global-link idea rests on do work, at compile time and at run
-> time.
+> The kernel, the foundation, seventeen endpoints across all five domain concepts, seven architecture
+> tests and a 65-test integration suite on Testcontainers Postgres exist, and the API has been run end to
+> end against Postgres and Keycloak under Aspire. **All four of §12's load-bearing assumptions are
+> settled** — the contravariant conversions the whole global-link idea rests on do work, at compile time
+> and at run time.
 >
 > **This document is reconciled against the code that was actually written**, and the code has won every
 > disagreement. It departs from the original v1 proposal in eight places: two chain kinds instead of one
@@ -40,6 +40,13 @@
 | **Station** | A position on the production line where a defect is detected or caused |
 | **Error Code** | The catalogued fault taxonomy that defects are classified against |
 | **Customer** | The recipient an escape is reported by or against |
+
+**All five are implemented as of 2026-09-05.** Escape and Customer were the last two, and until that date
+they existed only in this table — the system was called a Fault Handling System while handling half the
+faults. An Escape carries a customer, a classification against the shared error-code taxonomy, and its own
+resolution; it deliberately holds **no link back to a Station or a Defect**, because the inward trace would
+be unreliable often enough to mislead. That is a domain decision, not a modelling shortcut: origin analysis
+lives outside this system until something can populate it honestly.
 
 ### Shape
 
@@ -1020,7 +1027,7 @@ public sealed class ResolveDefectEndpoint : IEndpoint
         .Build();
 
     public static void MapEndpoint(IEndpointRouteBuilder app) =>
-        app.MapPost("/defects/{id:guid}/resolution", async (
+        app.MapPost("/defects/{id:guid}/resolve", async (
                 Guid id, ResolveDefectRequest request, ChainRunner runner, CancellationToken ct) =>
             {
                 var result = await runner.RunAsync(Handle, new ResolveDefectState(id, request), ct);
@@ -1042,9 +1049,10 @@ which then propagates through `ChainFactory.For<…>()` by inference.
 `RecordDomainEvents` and `SaveChanges` — four of the six links — appear in both chains with no changes at
 all, across two different chain kinds. That is the payoff of §5's single link contract.
 
-`POST` rather than `PATCH` for the resolution, because calling it twice differs from calling it once: the
-second attempt returns `409`. That rules out `PUT`'s idempotency promise, and `PATCH` would invite a single
-fat endpoint dispatching on which fields arrived — the opposite of one slice per command.
+`POST` rather than `PATCH`, because calling it twice differs from calling it once: the second attempt
+returns `409`. That rules out `PUT`'s idempotency promise, and `PATCH` would invite a single fat endpoint
+dispatching on which fields arrived — the opposite of one slice per command. **The as-built route is
+`/defects/{id}/resolve`**; this section said `/resolution` until 2026-09-05, and the code was right.
 
 Note the **four** levels of coupling visible in these declarations, each chosen by the link's own signature
 rather than by where it sits in the list — the fourth appeared with the generic validation link, which did
@@ -1091,11 +1099,12 @@ separately, because `AddChain`'s assembly scan skips open generics (Rule 7).
 `chain.failed_link` is the payoff of the re-throwing runner (§6): the exception keeps its own stack trace
 *and* the span records which link was executing when it escaped.
 
-> **This requires one line in the API's telemetry setup.** An `ActivitySource` nothing has subscribed to
-> produces no spans at all: `ConfigureOpenTelemetry` in `FHS.ServiceDefaults` calls
-> `tracing.AddSource(builder.Environment.ApplicationName)`, which does **not** match `"FHS.Chain"`. The
-> API must add `.AddSource(ChainRunner.ActivitySourceName)` or the entire section below is silently
-> inert — and "silently inert" is the worst failure mode a telemetry bug has.
+> **This required one line in the API's telemetry setup, and it is there.** An `ActivitySource` nothing
+> has subscribed to produces no spans at all: `ConfigureOpenTelemetry` in `FHS.ServiceDefaults` calls
+> `tracing.AddSource(builder.Environment.ApplicationName)`, which does **not** match `"FHS.Chain"`.
+> `Program.cs` adds `.AddSource(ChainRunner.ActivitySourceName)` separately, which is what keeps this
+> section from being silently inert — the worst failure mode a telemetry bug has. Recorded as satisfied on
+> 2026-09-05; it had been carried as a standing hazard long after it was closed.
 
 Because FHS runs under Aspire, the dashboard's trace waterfall becomes a **live diagram of the feature**,
 showing the real order and the real cost of every link, per request. This is a genuine and somewhat
@@ -1263,6 +1272,36 @@ Three decisions came out of the review, and all three are recorded where they be
 bounded/unbounded question rather than a consistency one (§9); and the two reference-data commands got the
 actor and the domain event they were missing (§15).
 
+### The seventeen-endpoint check (2026-09-05)
+
+Not a full review — the criteria were reviewed at ten and the verdict stands. This records what the
+Escapes and Customers milestone did to the numbers, because it is the first evidence from an aggregate
+family the pattern was **not** designed against.
+
+| Signal | At ten | At seventeen |
+| --- | --- | --- |
+| Kernel size | unchanged since 2026-08-29 | **still unchanged** — not one commit to `backend/FHS.Chain` |
+| Capability interfaces | 3 | **3** |
+| Median write-chain length | 4 | **5** (4, 4, 4, 5, 5, 5, 6, 6, 7, 7) |
+| Escape-hatch count | 0 | **0** |
+| Rule 3 pressure | 0 | **0** |
+| Endpoints | 10 | **17** — 10 write chains, 7 read |
+| Integration tests | 39 | **65** |
+
+**The kernel row is the finding.** Two new entities, seven endpoints, a new aggregate family with its own
+lifecycle, and `FHS.Chain` did not move — nor did `Program.cs`, nor any capability interface.
+`ValidateRequestInput`, `ResolveActor`, `RecordDomainEvents` and `SaveChanges` were reused unmodified
+across a third family. §13's first standing risk is that you end up maintaining a framework that grows to
+meet each feature; seven features arrived and it grew by nothing.
+
+`CreateEscape` mirrors `CreateDefect` at seven links with `LoadAndEnsureCustomerExistence` standing where
+`LoadAndEnsureStationExistence` stands. That is the clearest available demonstration that the shape
+generalises rather than having been fitted to Defects.
+
+The ceremony-floor row moved the wrong way, as predicted: seven new slices at four to seven files each,
+and reads are now 7 of 17 endpoints. Still watched, still not acted on. §14's `feature-slice` scaffold is
+the answer if the typing becomes the complaint.
+
 ### Standing risks
 
 - **You are maintaining a framework.** Cap it, freeze it after v1. Growth is the smell that says the
@@ -1365,7 +1404,7 @@ filter (Rule 7), the `AsNoTracking`-plus-explicit-write convention (Rule 14), an
 3. ~~**The §13 review**~~ — **done** (2026-09-03). Verdict: keep. The measured rows and what came out of
    it are in §13.
 
-**Carried out of the review**, and the only outstanding work:
+**Carried out of the review** — both **done** (2026-09-04):
 
 1. **Actor and domain events on the two reference-data commands.** `RetireErrorCode` and
    `DecommissionStation` mutate state with no `ResolveActor` and no `RecordDomainEvents`, so nothing
@@ -1398,6 +1437,35 @@ filter (Rule 7), the `AsNoTracking`-plus-explicit-write convention (Rule 14), an
    `For<TEvent>` also stops taking a separate timestamp and reads `OccurredAt` off the event it is given,
    which removes the one way a call site could previously assert a time that disagreed with the payload
    beside it.
+
+### Milestone: Escapes and Customers — **done** (2026-09-05)
+
+The domain's missing half. Seven endpoints, two entities, one migration, taking the count to seventeen and
+the integration suite to 65. Verified green: `dotnet build` clean, 7/7 architecture tests, 65/65
+integration tests.
+
+| Area | Endpoints |
+| --- | --- |
+| Customers | `POST /customers`, `GET /customers`, `POST /customers/{id}/deactivate` |
+| Escapes | `POST /escapes`, `POST /escapes/{id}/resolve`, `GET /escapes/{id}`, `GET /escapes` |
+
+Decisions worth keeping, because each was taken against a plausible alternative:
+
+- **An Escape links to neither a Defect nor a Station.** Both were proposed and both were rejected on the
+  same ground — the inward trace-back would be unreliable often enough to mislead, and a nullable field
+  that is usually null is worse than no field. See §1.
+- **`GET /customers` is unpaged; `GET /escapes` is paged.** The bounded/unbounded rule from §9, applied
+  rather than reasoned about again. Customers are what the SPA's dropdowns bind to, so wrapping them in a
+  paged envelope would have forced a second unpaged endpoint into existence beside it.
+- **`DeactivateCustomer` shipped with `ResolveActor` and `RecordDomainEvents` from the first commit** —
+  the first reference-data command that did not have to be retrofitted with them. The actor rides on a
+  `CustomerDeactivated` event, not on new entity columns, matching the decision above it.
+- **`MapChain` stayed dead.** Seven new endpoints and the plain minimal API delegate was never the thing
+  that hurt.
+
+One as-built wart: `Features/Escapes/CreateEscape/` names its endpoint file `CreateEscapeEndpoint .cs`
+— with a space, and not `Endpoint.cs` like the other sixteen slices. C# does not care and the suite is
+green, but it is the one file in seventeen that breaks the convention.
 
 Link tests were item 2 here and are **cut**, not deferred — see §11 for why and for what it costs.
 
