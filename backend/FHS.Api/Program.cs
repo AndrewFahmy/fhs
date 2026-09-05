@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json.Serialization;
 using FHS.Api.Data;
 using FHS.Api.Extensions;
@@ -6,6 +5,7 @@ using FHS.Api.Primitives;
 using FHS.Chain;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var assemblyReference = typeof(Program).Assembly;
@@ -35,6 +35,7 @@ var assemblyReference = typeof(Program).Assembly;
         .Services.AddDbContexts(builder.Configuration, builder.Environment)
         .AddJwtAuthentication(builder.Configuration, builder.Environment)
         .AddValidationByAssembly(assemblyReference)
+        .AddOpenApiDocument()
         .AddChain(assemblyReference);
 }
 
@@ -46,6 +47,9 @@ var app = builder.Build();
     {
         await using var scope = app.Services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<FhsCommandDbContext>().Database.MigrateAsync();
+
+        app.MapOpenApi();
+        app.MapScalarApiReference();
     }
 
     app.UseExceptionHandler();

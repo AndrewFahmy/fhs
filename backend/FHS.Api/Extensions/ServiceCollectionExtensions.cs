@@ -7,6 +7,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 namespace FHS.Api.Extensions;
 
@@ -52,6 +53,41 @@ public static class ServiceCollectionExtensions
         {
             services.AddValidatorsFromAssembly(assembly);
             services.AddScoped(typeof(ValidateRequestInput<>));
+
+            return services;
+        }
+
+        public IServiceCollection AddOpenApiDocument()
+        {
+            services.AddOpenApi(options => 
+                options.AddDocumentTransformer(
+                    (document, context, ct) =>
+                    {
+                        document.Components ??= new OpenApiComponents();
+                        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
+                        document.Components.SecuritySchemes[JwtBearerDefaults.AuthenticationScheme] = 
+                            new OpenApiSecurityScheme
+                            {
+                                Type = SecuritySchemeType.Http,
+                                Scheme = "bearer",
+                                BearerFormat = "JWT",
+                                In = ParameterLocation.Header,
+                                Description = "A Keycloak access token for the fhs realm."
+                            };
+
+                        document.Security =
+                        [
+                            new OpenApiSecurityRequirement
+                            {
+                                [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = []
+                            }
+                        ];
+
+                        return Task.CompletedTask;
+                    }
+                )
+            );
 
             return services;
         }

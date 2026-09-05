@@ -32,9 +32,13 @@ public sealed class BadHttpRequestExceptionHandler(ILogger<BadHttpRequestExcepti
         var error = Errors.MalformedRequest(Describe(path));
 
         var problem = Results.Problem(
-            title: error.Message,
-            statusCode: badRequest.StatusCode,
-            extensions: new Dictionary<string, object?> { ["code"] = error.Code, ["path"] = path }
+            new FhsProblemDetails
+            {
+                Title = error.Message,
+                Status = badRequest.StatusCode,
+                Code = error.Code,
+                Path = path
+            }
         );
 
         await problem.ExecuteAsync(httpContext);
