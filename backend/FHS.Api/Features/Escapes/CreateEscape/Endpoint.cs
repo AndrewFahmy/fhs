@@ -31,6 +31,12 @@ public sealed class CreateEscapeEndpoint : IEndpoint
             )
             .WithName("Create Escape")
             .WithTags(AppConstants.Endpoints.EscapesGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<CreateEscapeResponse>(StatusCodes.Status201Created)
+            .ProducesProblems(
+                StatusCodes.Status400BadRequest,
+                StatusCodes.Status404NotFound,
+                StatusCodes.Status409Conflict
+            );
     }
 }

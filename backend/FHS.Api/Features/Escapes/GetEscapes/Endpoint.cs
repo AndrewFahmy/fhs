@@ -25,6 +25,8 @@ public sealed class GetEscapesEndpoint : IEndpoint
             )
             .WithName("Get Escapes")
             .WithTags(AppConstants.Endpoints.EscapesGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<PagedResponse<EscapeListItem>>(StatusCodes.Status200OK)
+            .ProducesProblems(StatusCodes.Status400BadRequest);
     }
 }

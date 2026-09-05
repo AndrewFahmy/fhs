@@ -31,6 +31,12 @@ public sealed class ResolveEscapeEndpoint : IEndpoint
             )
             .WithName("Resolve Escape")
             .WithTags(AppConstants.Endpoints.EscapesGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblems(
+                StatusCodes.Status400BadRequest,
+                StatusCodes.Status404NotFound,
+                StatusCodes.Status409Conflict
+            );
     }
 }

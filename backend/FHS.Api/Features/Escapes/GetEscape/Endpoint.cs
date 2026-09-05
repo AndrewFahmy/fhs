@@ -25,6 +25,8 @@ public sealed class GetEscapeEndpoint : IEndpoint
             )
             .WithName("Get Escape Details")
             .WithTags(AppConstants.Endpoints.EscapesGroupName)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<EscapeDetailResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
