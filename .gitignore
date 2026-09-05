@@ -483,3 +483,15 @@ $RECYCLE.BIN/
 
 # project temp location
 temp/
+
+# Vite output and local environment overrides
+dist
+dist-ssr
+*.local
+
+# Nested project editor settings
+**/.vscode/*
+!**/.vscode/extensions.json
+
+# Optional: all Vim swap-file variants
+*.sw?
