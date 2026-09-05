@@ -28,6 +28,6 @@ public sealed class GetCustomersEndpoint : IEndpoint
             .WithTags(AppConstants.Endpoints.CustomersGroupName)
             .RequireAuthorization()
             .Produces<IReadOnlyList<CustomerListItem>>(StatusCodes.Status200OK)
-            .ProducesProblems(StatusCodes.Status404NotFound);
+            .ProducesProblems(StatusCodes.Status400BadRequest);
     }
 }
