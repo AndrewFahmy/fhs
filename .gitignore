@@ -495,3 +495,6 @@ dist-ssr
 
 # Optional: all Vim swap-file variants
 *.sw?
+
+# deprecated frontend folder
+old_frontend/
