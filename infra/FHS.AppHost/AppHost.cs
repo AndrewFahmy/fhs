@@ -31,6 +31,12 @@ var api = builder
     .WithEnvironment("Cors__AllowedOrigins__0", web.GetEndpoint("http"))
     .WaitFor(keycloak);
 
-web.WithEnvironment("VITE_API_URL", api.GetEndpoint("http")).WaitFor(api);
+web.WithEnvironment("VITE_API_URL", api.GetEndpoint("http"))
+    .WithEnvironment(
+        "VITE_OIDC_AUTHORITY",
+        ReferenceExpression.Create($"{keycloak.GetEndpoint("http")}/realms/fhs")
+    )
+    .WaitFor(api)
+    .WaitFor(keycloak);
 
 builder.Build().Run();

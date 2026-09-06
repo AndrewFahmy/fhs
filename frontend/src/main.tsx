@@ -2,6 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { AuthProvider } from "react-oidc-context";
+import {
+    onSigninCallback,
+    userManager,
+    onSignoutCallback,
+} from "./api/user-manager";
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
 
@@ -21,8 +27,14 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
-        </QueryClientProvider>
+        <AuthProvider
+            userManager={userManager}
+            onSigninCallback={onSigninCallback}
+            onSignoutCallback={onSignoutCallback}
+        >
+            <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router} />
+            </QueryClientProvider>
+        </AuthProvider>
     </StrictMode>,
 );
