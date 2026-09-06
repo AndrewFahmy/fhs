@@ -35,6 +35,7 @@ var assemblyReference = typeof(Program).Assembly;
     builder
         .Services.AddDbContexts(builder.Configuration, builder.Environment)
         .AddJwtAuthentication(builder.Configuration, builder.Environment)
+        .AddSpaCors(builder.Configuration)
         .AddValidationByAssembly(assemblyReference)
         .AddOpenApiDocument()
         .AddChain(assemblyReference);
@@ -57,11 +58,15 @@ var app = builder.Build();
         app.MapScalarApiReference(options =>
         {
             options.HideModels();
-            options.WithTheme(ScalarTheme.DeepSpace);
+            options
+                .WithTheme(ScalarTheme.DeepSpace)
+                .WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Fetch);
         });
     }
 
     app.UseExceptionHandler();
+
+    app.UseCors(AppConstants.Cors.SpaPolicy);
 
     app.UseAuthentication();
     app.UseAuthorization();

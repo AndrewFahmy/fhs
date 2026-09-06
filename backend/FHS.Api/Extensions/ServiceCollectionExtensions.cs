@@ -91,6 +91,20 @@ public static class ServiceCollectionExtensions
 
             return services;
         }
+
+        public IServiceCollection AddSpaCors(IConfiguration config)
+        {
+            var allowedOrigins = config.GetValue<string[]?>(AppConstants.Cors.AllowedOriginsPropertyName) ?? [];
+            
+            services.AddCors(options => 
+                options.AddPolicy(
+                    AppConstants.Cors.SpaPolicy,
+                    policy => policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
+                )
+            );
+
+            return services;
+        }
     }
 
     private static void AddDbContextInternal<TDbContext>(

@@ -16,6 +16,8 @@ var keycloak = builder
     .WithDataBindMount("../../temp/keycloak")
     .WithRealmImport("../Keycloak/fhs-realm.json");
 
+var web = builder.AddViteApp("web", "../../frontend").WithBun();
+
 var api = builder
     .AddProject<Projects.FHS_Api>("api")
     .WithUrlForEndpoint("http", url => url.Url = "/scalar")
@@ -26,12 +28,9 @@ var api = builder
         "Authentication__Authority",
         ReferenceExpression.Create($"{keycloak.GetEndpoint("http")}/realms/fhs")
     )
+    .WithEnvironment("Cors__AllowedOrigins__0", web.GetEndpoint("http"))
     .WaitFor(keycloak);
 
-builder
-    .AddViteApp("web", "../../frontend")
-    .WithBun()
-    .WithEnvironment("VITE_API_URL", api.GetEndpoint("http"))
-    .WaitFor(api);
+web.WithEnvironment("VITE_API_URL", api.GetEndpoint("http")).WaitFor(api);
 
 builder.Build().Run();
