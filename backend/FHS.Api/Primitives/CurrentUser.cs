@@ -9,5 +9,5 @@ public sealed class CurrentUser(IHttpContextAccessor accessor) : ICurrentUser
 
     public bool IsAuthenticated => Principal?.Identity?.IsAuthenticated ?? false;
 
-    public string? SubjectId => Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+    public string? SubjectId => Principal?.FindFirstValue(AppConstants.Auth.SubjectClaimType);
 }

@@ -8,6 +8,8 @@ public static partial class AppConstants
 
         public static readonly string AudiencePropertyName = $"{AuthenticationSectionName}:Audience";
 
+        public const string SubjectClaimType = "sub";
+
         public const string RoleClaimType = "roles";
 
         public const string AdminRole = "admin";

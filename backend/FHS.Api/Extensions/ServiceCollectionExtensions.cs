@@ -38,7 +38,8 @@ public static class ServiceCollectionExtensions
                 options.Authority = config[AppConstants.Auth.AuthorityPropertyName];
                 options.Audience = config[AppConstants.Auth.AudiencePropertyName];
                 options.RequireHttpsMetadata = !env.IsDevelopment();
-                options.TokenValidationParameters.RoleClaimType = "roles";
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters.RoleClaimType = AppConstants.Auth.RoleClaimType;
             });
 
             services.AddAuthorization(ConfigureAuthorization)
@@ -94,7 +95,7 @@ public static class ServiceCollectionExtensions
 
         public IServiceCollection AddSpaCors(IConfiguration config)
         {
-            var allowedOrigins = config.GetValue<string[]?>(AppConstants.Cors.AllowedOriginsPropertyName) ?? [];
+            var allowedOrigins = config.GetSection(AppConstants.Cors.AllowedOriginsPropertyName).Get<string[]>() ?? [];
             
             services.AddCors(options => 
                 options.AddPolicy(

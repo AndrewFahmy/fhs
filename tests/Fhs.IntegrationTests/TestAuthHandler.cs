@@ -30,7 +30,7 @@ public sealed class TestAuthHandler(
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        List<Claim> claims = [new(ClaimTypes.NameIdentifier, subject!)];
+        List<Claim> claims = [new(AppConstants.Auth.SubjectClaimType, subject!)];
 
         if (Request.Headers.TryGetValue(RolesHeader, out var roles))
         {
