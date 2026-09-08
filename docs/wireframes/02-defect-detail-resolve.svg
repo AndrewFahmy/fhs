@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="980" viewBox="0 0 1500 980" fill="none">
+  <rect width="1500" height="980" fill="#E7E9E5"/>
+  <rect x="46" y="38" width="1408" height="904" rx="8" fill="#FBFCF9" stroke="#C8CCC6"/>
+  <rect x="46" y="38" width="1408" height="72" rx="8" fill="#FBFCF9"/>
+  <path d="M46 110H1454" stroke="#C8CCC6"/>
+  <rect x="74" y="61" width="27" height="27" rx="3" fill="#171917"/>
+  <path d="M81 69H94M81 75H91M81 81H88" stroke="#FBFCF9" stroke-width="2" stroke-linecap="round"/>
+  <text x="114" y="81" fill="#171917" font-family="Georgia, serif" font-size="22" font-weight="700">FHS</text>
+  <text x="201" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">DEFECTS</text>
+  <text x="300" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">ESCAPES</text>
+  <text x="393" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">REFERENCE</text>
+  <path d="M480 73L485 78L490 73" stroke="#6A706A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1251" cy="76" r="15" fill="#D9DDD6"/>
+  <text x="1245" y="81" fill="#171917" font-family="Arial, sans-serif" font-size="10" font-weight="700">AF</text>
+  <text x="1310" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14">Andrew Fahmy</text>
+
+  <text x="84" y="158" fill="#5A605A" font-family="Arial, sans-serif" font-size="14" font-weight="700">&lt;  DEFECTS</text>
+  <text x="84" y="221" fill="#171917" font-family="Georgia, serif" font-size="38" font-weight="700">ST-04 / EC-1021</text>
+  <text x="86" y="251" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">Raised today at 09:41 by M. Haddad</text>
+  <rect x="1035" y="195" width="116" height="34" rx="17" fill="#F8E2E0"/>
+  <rect x="1051" y="206" width="12" height="12" rx="1" fill="#B22B22"/>
+  <text x="1073" y="218" fill="#7B1D18" font-family="Arial, sans-serif" font-size="12" font-weight="700">CRITICAL</text>
+  <rect x="1172" y="195" width="91" height="34" rx="17" fill="#171917"/>
+  <circle cx="1190" cy="212" r="5" fill="#FBFCF9"/>
+  <text x="1202" y="217" fill="#FBFCF9" font-family="Arial, sans-serif" font-size="12" font-weight="700">OPEN</text>
+  <rect x="1281" y="190" width="137" height="44" rx="4" fill="#171917"/>
+  <text x="1303" y="218" fill="#FBFCF9" font-family="Arial, sans-serif" font-size="14" font-weight="700">Resolve defect</text>
+
+  <path d="M84 284H1418" stroke="#C8CCC6"/>
+  <text x="84" y="333" fill="#6A706A" font-family="Arial, sans-serif" font-size="11" font-weight="700">DESCRIPTION</text>
+  <text x="84" y="370" fill="#171917" font-family="Georgia, serif" font-size="23">Weld seam porosity on the left-hand bracket, third pass.</text>
+  <text x="84" y="402" fill="#171917" font-family="Georgia, serif" font-size="23">Visible on the outer edge after grinding.</text>
+
+  <rect x="84" y="449" width="867" height="359" rx="5" fill="#F4F5F2" stroke="#D7DAD5"/>
+  <text x="108" y="484" fill="#6A706A" font-family="Arial, sans-serif" font-size="11" font-weight="700">STATION</text>
+  <text x="108" y="514" fill="#171917" font-family="monospace" font-size="15" font-weight="700">ST-04</text>
+  <text x="164" y="514" fill="#6A706A" font-family="Arial, sans-serif" font-size="15">Weld cell 4</text>
+  <path d="M108 544H927" stroke="#D7DAD5"/>
+  <text x="108" y="579" fill="#6A706A" font-family="Arial, sans-serif" font-size="11" font-weight="700">ERROR CODE</text>
+  <text x="108" y="609" fill="#171917" font-family="monospace" font-size="15" font-weight="700">EC-1021</text>
+  <text x="182" y="609" fill="#6A706A" font-family="Arial, sans-serif" font-size="15">Weld porosity</text>
+  <path d="M108 639H927" stroke="#D7DAD5"/>
+  <text x="108" y="674" fill="#6A706A" font-family="Arial, sans-serif" font-size="11" font-weight="700">RAISED BY</text>
+  <text x="108" y="704" fill="#171917" font-family="Arial, sans-serif" font-size="15">M. Haddad</text>
+  <path d="M108 734H927" stroke="#D7DAD5"/>
+  <text x="108" y="769" fill="#6A706A" font-family="Arial, sans-serif" font-size="11" font-weight="700">RAISED AT</text>
+  <text x="108" y="799" fill="#171917" font-family="Arial, sans-serif" font-size="15">Today, 09:41</text>
+
+  <rect x="981" y="449" width="437" height="359" rx="5" fill="#F4F5F2" stroke="#D7DAD5"/>
+  <text x="1005" y="484" fill="#6A706A" font-family="Arial, sans-serif" font-size="11" font-weight="700">RESOLUTION</text>
+  <text x="1005" y="535" fill="#6A706A" font-family="Georgia, serif" font-size="19">Not resolved</text>
+  <text x="1005" y="566" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">An open defect remains visible</text>
+  <text x="1005" y="588" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">to the next operator.</text>
+
+  <rect x="46" y="110" width="1408" height="832" fill="#171917" fill-opacity="0.44"/>
+  <rect x="910" y="255" width="470" height="529" rx="7" fill="#FBFCF9" stroke="#B8BDB6"/>
+  <text x="940" y="306" fill="#171917" font-family="Georgia, serif" font-size="26" font-weight="700">Resolve defect</text>
+  <path d="M1341 284L1355 298M1355 284L1341 298" stroke="#171917" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M910 332H1380" stroke="#D7DAD5"/>
+  <rect x="940" y="360" width="12" height="12" rx="1" fill="#B22B22"/>
+  <text x="962" y="371" fill="#171917" font-family="Arial, sans-serif" font-size="13" font-weight="700">ST-04</text>
+  <text x="1007" y="371" fill="#6A706A" font-family="Arial, sans-serif" font-size="13">/</text>
+  <text x="1021" y="371" fill="#171917" font-family="monospace" font-size="13" font-weight="700">EC-1021</text>
+  <text x="940" y="405" fill="#6A706A" font-family="Arial, sans-serif" font-size="13">Raised 09:41 by M. Haddad</text>
+  <text x="940" y="461" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">Resolution</text>
+  <text x="1024" y="461" fill="#6A706A" font-family="Arial, sans-serif" font-size="12">0 / 500</text>
+  <rect x="940" y="477" width="410" height="152" rx="4" fill="#FBFCF9" stroke="#949B94" stroke-width="1.5"/>
+  <text x="955" y="505" fill="#8A908A" font-family="Arial, sans-serif" font-size="14">Describe the corrective action taken</text>
+  <path d="M910 676H1380" stroke="#D7DAD5"/>
+  <text x="1092" y="731" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">Cancel</text>
+  <rect x="1192" y="704" width="158" height="44" rx="4" fill="#171917"/>
+  <text x="1214" y="732" fill="#FBFCF9" font-family="Arial, sans-serif" font-size="14" font-weight="700">Mark resolved</text>
+</svg>

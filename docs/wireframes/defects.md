@@ -16,9 +16,55 @@ Four screens, backed by exactly four endpoints. This is the reference set — `e
 
 ---
 
+## Visual scheme
+
+The Defects screens support both light and dark modes. They use one semantic color system: switching mode
+changes token values, never component meaning or hierarchy. The user can select `System`, `Light`, or
+`Dark`; `System` is the initial default and follows the operating-system preference.
+
+| Semantic role | Light | Dark | Use |
+| --- | --- | --- | --- |
+| Canvas | `#E7E9E5` | `#121412` | Viewport behind the application surface. |
+| Surface | `#FBFCF9` | `#1B1E1A` | App shell, pages, tables, dialogs and form cards. |
+| Subtle surface | `#F1F3EF` | `#242924` | Filter areas, secondary panels and inactive control backgrounds. |
+| Table heading | `#EDEFEA` | `#292E29` | Table header row. |
+| Input surface | `#FBFCF9` | `#171A17` | Text fields, comboboxes and page-jump input. |
+| Primary text | `#171917` | `#F3F5F0` | Headings, body text and enabled values. |
+| Muted text | `#6A706A` | `#B8BEB6` | Supporting copy, metadata and inactive navigation. |
+| Table heading text | `#4A504A` | `#C7CCC5` | Column headings and compact all-caps labels. |
+| Strong border | `#C8CCC6` | `#484D46` | Page, table and dialog boundaries. |
+| Subtle border | `#D8DBD6` | `#3D443C` | Panel and row separators. |
+| Control border | `#B8BDB6` | `#596058` | Secondary controls and un-focused fields. |
+| Focus border | `#737A73` | `#899287` | Focused inputs and direct-page field. |
+
+**Actions.** Primary commands use `#171917` on `#FBFCF9` in light mode and invert to `#F3F5F0` on
+`#171917` in dark mode. Secondary controls retain the surface color and use the control border. This
+keeps the active command clear without assigning product meaning to a decorative accent color.
+
+**Severity.** Severity is the sole semantic color treatment. A swatch is always paired with its written
+label; never communicate severity through color alone.
+
+| Severity | Light | Dark | Treatment |
+| --- | --- | --- | --- |
+| Critical | swatch `#B22B22`; badge `#F8E2E0` with text `#7B1D18` | swatch `#EE6C61`; badge `#43221F` with text `#FFD7D3` | Filled swatch and, where space allows, a high-emphasis badge. |
+| Major | swatch `#B87510` | swatch `#F1B64E` | Filled swatch; label uses primary text. |
+| Minor | surface fill with `#697069` outline | surface fill with `#CAD0C7` outline | Outline swatch; label uses primary text. |
+
+**Status.** Open is a filled dot using primary text color with a contrasting centre; Resolved is an
+outline dot using muted text color. The label `OPEN` or `RESOLVED` is always rendered with the marker.
+On resolved rows, only the severity marker becomes muted; the row text remains readable at normal contrast.
+
+**Tailwind v4 implementation.** Define these as semantic CSS variables on `:root`, override them on
+`[data-theme="dark"]`, and expose them through Tailwind theme tokens. Components must consume roles such
+as `surface`, `ink`, `muted`, and `severity-critical`, not literal hex values. Set
+`color-scheme: light dark` on the theme root so native controls agree with the selected appearance before
+the React tree mounts.
+
+---
+
 ## 1. Defect list
 
-The screen the plant lives in. Everything about it is optimised for someone scanning many rows quickly,
+The screen the plant lives in. Everything about it is optimized for someone scanning many rows quickly,
 several times a shift.
 
 ```text

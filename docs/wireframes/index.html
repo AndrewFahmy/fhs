@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FHS Design Review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #e7e9e5;
+      --ink: #171917;
+      --muted: #6a706a;
+      --line: #c8ccc6;
+      --paper: #fbfcf9;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 32px 28px 20px;
+    }
+
+    h1, p { margin: 0; }
+    h1 { font-family: Georgia, serif; font-size: 28px; font-weight: 600; }
+    h2 { margin: 0; font-family: Georgia, serif; font-size: 25px; font-weight: 600; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+
+    main {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 0 28px 48px;
+    }
+
+    .intro {
+      max-width: 780px;
+      margin: 0 0 26px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .theme-section + .theme-section { margin-top: 48px; }
+    .theme-section__heading { margin-bottom: 8px; }
+    .theme-section__copy { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .preview {
+      overflow: hidden;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 48px rgb(23 25 23 / 12%);
+    }
+
+    .preview img { display: block; width: 100%; height: auto; }
+    .preview--wide { grid-column: 1 / -1; }
+    figcaption {
+      padding: 14px 16px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    figcaption strong { color: var(--ink); }
+
+    @media (max-width: 900px) {
+      header { display: block; padding: 24px 16px 14px; }
+      .subtitle { margin-top: 8px; }
+      main { padding: 0 16px 28px; }
+      .gallery { grid-template-columns: 1fr; }
+      .preview--wide { grid-column: auto; }
+      .preview { overflow-x: auto; }
+      .preview img { width: 1240px; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FHS Visual Design</h1>
+    <p class="subtitle">Review artifacts. No application code changed.</p>
+  </header>
+  <main>
+    <section class="theme-section" aria-labelledby="light-mode-heading">
+      <h2 id="light-mode-heading" class="theme-section__heading">Light Mode</h2>
+      <p class="theme-section__copy">A high-density, desktop-first quality desk for production faults. Severity is the only colour-coded signal; everything else is built for rapid scanning, clear decisions, and honest domain boundaries.</p>
+      <div class="gallery" aria-label="Light-mode FHS design concepts">
+      <figure class="preview preview--wide">
+        <a href="01-defects-list.svg"><img src="01-defects-list.svg" alt="FHS Defects list screen concept" /></a>
+        <figcaption><strong>01. Defects</strong> - Default triage surface with a page-size control, numeric navigation, and direct page jump.</figcaption>
+      </figure>
+      <figure class="preview">
+        <a href="02-defect-detail-resolve.svg"><img src="02-defect-detail-resolve.svg" alt="Defect detail page with a resolve dialog" /></a>
+        <figcaption><strong>02. Defect detail</strong> - Read-only record with a contextual resolution action.</figcaption>
+      </figure>
+      <figure class="preview">
+        <a href="03-new-defect.svg"><img src="03-new-defect.svg" alt="New Defect form" /></a>
+        <figcaption><strong>03. Raise a defect</strong> - Three inputs; severity is derived, not editable.</figcaption>
+      </figure>
+      <figure class="preview preview--wide">
+        <a href="04-escapes-list.svg"><img src="04-escapes-list.svg" alt="FHS Escapes list screen concept" /></a>
+        <figcaption><strong>04. Escapes</strong> - Customer-reported faults, deliberately separate from internal defect origin.</figcaption>
+      </figure>
+      <figure class="preview">
+        <a href="05-new-escape.svg"><img src="05-new-escape.svg" alt="New Escape form" /></a>
+        <figcaption><strong>05. Report an escape</strong> - Customer context without invented station or defect traceability.</figcaption>
+      </figure>
+      <figure class="preview">
+        <a href="06-reference-data.svg"><img src="06-reference-data.svg" alt="Error codes reference-data screen" /></a>
+        <figcaption><strong>06. Reference data</strong> - Shared pattern for stations, error codes, and customers.</figcaption>
+      </figure>
+      <figure class="preview preview--wide">
+        <a href="07-mobile.svg"><img src="07-mobile.svg" alt="Mobile Defects list and New Defect form" /></a>
+        <figcaption><strong>07. Mobile</strong> - Tappable fault records and a one-column form with in-reach actions.</figcaption>
+      </figure>
+      </div>
+    </section>
+    <section class="theme-section" aria-labelledby="dark-mode-heading">
+      <h2 id="dark-mode-heading" class="theme-section__heading">Dark Mode</h2>
+      <p class="theme-section__copy">The same information hierarchy and component system translated through semantic surface, border, text, and severity tokens. The moon control opens the stored appearance choice.</p>
+      <div class="gallery" aria-label="Dark-mode FHS design concepts">
+        <figure class="preview preview--wide">
+          <a href="08-dark-defects-list.svg"><img src="08-dark-defects-list.svg" alt="Dark-mode FHS Defects list screen concept" /></a>
+          <figcaption><strong>08. Dark Defects</strong> - Dark triage grid with grouped enterprise paging and an appearance control.</figcaption>
+        </figure>
+        <figure class="preview">
+          <a href="09-dark-defect-detail-resolve.svg"><img src="09-dark-defect-detail-resolve.svg" alt="Dark-mode Defect detail with resolution dialog" /></a>
+          <figcaption><strong>09. Dark resolution</strong> - Retained context and a high-contrast dialog surface.</figcaption>
+        </figure>
+        <figure class="preview">
+          <a href="10-dark-new-escape.svg"><img src="10-dark-new-escape.svg" alt="Dark-mode Escape reporting form" /></a>
+          <figcaption><strong>10. Dark Escape form</strong> - Inputs and derived severity in the customer-reporting flow.</figcaption>
+        </figure>
+        <figure class="preview">
+          <a href="11-dark-reference-data.svg"><img src="11-dark-reference-data.svg" alt="Dark-mode Error Codes reference-data screen" /></a>
+          <figcaption><strong>11. Dark reference data</strong> - Active-state filter, table, and lifecycle action treatment.</figcaption>
+        </figure>
+        <figure class="preview">
+          <a href="12-dark-mobile.svg"><img src="12-dark-mobile.svg" alt="Dark-mode mobile list and Escape reporting form" /></a>
+          <figcaption><strong>12. Dark mobile</strong> - Responsive triage and reporting in the same theme system.</figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

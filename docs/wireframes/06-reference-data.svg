@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="940" viewBox="0 0 1500 940" fill="none">
+  <rect width="1500" height="940" fill="#E7E9E5"/>
+  <rect x="46" y="38" width="1408" height="864" rx="8" fill="#FBFCF9" stroke="#C8CCC6"/>
+  <rect x="46" y="38" width="1408" height="72" rx="8" fill="#FBFCF9"/><path d="M46 110H1454" stroke="#C8CCC6"/>
+  <rect x="74" y="61" width="27" height="27" rx="3" fill="#171917"/><path d="M81 69H94M81 75H91M81 81H88" stroke="#FBFCF9" stroke-width="2" stroke-linecap="round"/>
+  <text x="114" y="81" fill="#171917" font-family="Georgia, serif" font-size="22" font-weight="700">FHS</text><text x="201" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">DEFECTS</text><text x="300" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">ESCAPES</text><text x="393" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">REFERENCE</text><path d="M480 73L485 78L490 73" stroke="#171917" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1251" cy="76" r="15" fill="#D9DDD6"/><text x="1245" y="81" fill="#171917" font-family="Arial, sans-serif" font-size="10" font-weight="700">AF</text><text x="1310" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14">Andrew Fahmy</text>
+
+  <rect x="380" y="98" width="170" height="145" rx="5" fill="#FBFCF9" stroke="#B8BDB6" filter="url(#shadow)"/>
+  <text x="402" y="132" fill="#171917" font-family="Arial, sans-serif" font-size="14">Stations</text>
+  <rect x="389" y="146" width="152" height="36" rx="3" fill="#EDEFEA"/><text x="402" y="169" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">Error codes</text>
+  <text x="402" y="217" fill="#171917" font-family="Arial, sans-serif" font-size="14">Customers</text>
+
+  <text x="84" y="174" fill="#171917" font-family="Georgia, serif" font-size="36" font-weight="700">Error codes</text>
+  <text x="85" y="203" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">The fault taxonomy used to classify defects and escapes</text>
+  <rect x="1230" y="150" width="188" height="44" rx="4" fill="#171917"/><path d="M1253 172H1267M1260 165V179" stroke="#FBFCF9" stroke-width="1.8" stroke-linecap="round"/><text x="1279" y="178" fill="#FBFCF9" font-family="Arial, sans-serif" font-size="14" font-weight="700">New error code</text>
+
+  <rect x="84" y="237" width="244" height="42" rx="4" fill="#EDEFEA" stroke="#C8CCC6"/>
+  <rect x="86" y="239" width="118" height="38" rx="3" fill="#171917"/><text x="115" y="263" fill="#FBFCF9" font-family="Arial, sans-serif" font-size="13" font-weight="700">Active</text><text x="235" y="263" fill="#5A605A" font-family="Arial, sans-serif" font-size="13">All</text>
+  <text x="351" y="263" fill="#6A706A" font-family="Arial, sans-serif" font-size="13">12 active codes</text>
+
+  <rect x="84" y="315" width="1332" height="442" rx="5" fill="#FBFCF9" stroke="#C8CCC6"/>
+  <rect x="85" y="316" width="1330" height="49" rx="5" fill="#EDEFEA"/>
+  <text x="109" y="346" fill="#4A504A" font-family="Arial, sans-serif" font-size="11" font-weight="700">SEVERITY</text><text x="252" y="346" fill="#4A504A" font-family="Arial, sans-serif" font-size="11" font-weight="700">CODE</text><text x="420" y="346" fill="#4A504A" font-family="Arial, sans-serif" font-size="11" font-weight="700">DESCRIPTION</text><text x="1159" y="346" fill="#4A504A" font-family="Arial, sans-serif" font-size="11" font-weight="700">STATUS</text>
+  <g font-family="Arial, sans-serif">
+    <rect x="108" y="396" width="12" height="12" rx="1" fill="#B22B22"/><text x="130" y="407" fill="#171917" font-size="12" font-weight="700">CRITICAL</text><text x="252" y="407" fill="#171917" font-family="monospace" font-size="14" font-weight="700">EC-1021</text><text x="420" y="407" fill="#171917" font-size="14">Weld porosity</text><text x="1159" y="407" fill="#171917" font-size="14">Active</text><circle cx="1375" cy="402" r="2" fill="#171917"/><circle cx="1383" cy="402" r="2" fill="#171917"/><circle cx="1391" cy="402" r="2" fill="#171917"/>
+    <path d="M85 445H1415" stroke="#DDE0DB"/>
+    <rect x="108" y="476" width="12" height="12" rx="1" fill="#B87510"/><text x="130" y="487" fill="#171917" font-size="12" font-weight="700">MAJOR</text><text x="252" y="487" fill="#171917" font-family="monospace" font-size="14" font-weight="700">EC-0330</text><text x="420" y="487" fill="#171917" font-size="14">Torque out of specification</text><text x="1159" y="487" fill="#171917" font-size="14">Active</text><circle cx="1375" cy="482" r="2" fill="#171917"/><circle cx="1383" cy="482" r="2" fill="#171917"/><circle cx="1391" cy="482" r="2" fill="#171917"/>
+    <path d="M85 525H1415" stroke="#DDE0DB"/>
+    <rect x="108" y="556" width="12" height="12" rx="1" fill="#FBFCF9" stroke="#697069" stroke-width="1.5"/><text x="130" y="567" fill="#171917" font-size="12" font-weight="700">MINOR</text><text x="252" y="567" fill="#171917" font-family="monospace" font-size="14" font-weight="700">EC-0075</text><text x="420" y="567" fill="#171917" font-size="14">Label misalignment</text><text x="1159" y="567" fill="#171917" font-size="14">Active</text><circle cx="1375" cy="562" r="2" fill="#171917"/><circle cx="1383" cy="562" r="2" fill="#171917"/><circle cx="1391" cy="562" r="2" fill="#171917"/>
+    <path d="M85 605H1415" stroke="#DDE0DB"/>
+    <rect x="108" y="636" width="12" height="12" rx="1" fill="#B87510"/><text x="130" y="647" fill="#171917" font-size="12" font-weight="700">MAJOR</text><text x="252" y="647" fill="#171917" font-family="monospace" font-size="14" font-weight="700">EC-0510</text><text x="420" y="647" fill="#171917" font-size="14">Transit packing damage</text><text x="1159" y="647" fill="#171917" font-size="14">Active</text><circle cx="1375" cy="642" r="2" fill="#171917"/><circle cx="1383" cy="642" r="2" fill="#171917"/><circle cx="1391" cy="642" r="2" fill="#171917"/>
+    <path d="M85 685H1415" stroke="#DDE0DB"/>
+    <rect x="108" y="716" width="12" height="12" rx="1" fill="#FBFCF9" stroke="#697069" stroke-width="1.5"/><text x="130" y="727" fill="#171917" font-size="12" font-weight="700">MINOR</text><text x="252" y="727" fill="#171917" font-family="monospace" font-size="14" font-weight="700">EC-0210</text><text x="420" y="727" fill="#171917" font-size="14">Surface scratch</text><text x="1159" y="727" fill="#171917" font-size="14">Active</text><circle cx="1375" cy="722" r="2" fill="#171917"/><circle cx="1383" cy="722" r="2" fill="#171917"/><circle cx="1391" cy="722" r="2" fill="#171917"/>
+  </g>
+  <rect x="1267" y="386" width="130" height="46" rx="4" fill="#FBFCF9" stroke="#B8BDB6" filter="url(#shadow)"/><text x="1283" y="415" fill="#171917" font-family="Arial, sans-serif" font-size="14">Retire code</text>
+  <text x="84" y="807" fill="#6A706A" font-family="Arial, sans-serif" font-size="13">Stations and Customers use this same reference-data pattern: code, name, active state, one lifecycle action.</text>
+  <rect x="380" y="98" width="170" height="145" rx="5" fill="#FBFCF9" stroke="#B8BDB6" filter="url(#shadow)"/>
+  <text x="402" y="132" fill="#171917" font-family="Arial, sans-serif" font-size="14">Stations</text>
+  <rect x="389" y="146" width="152" height="36" rx="3" fill="#EDEFEA"/><text x="402" y="169" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">Error codes</text>
+  <text x="402" y="217" fill="#171917" font-family="Arial, sans-serif" font-size="14">Customers</text>
+  <defs><filter id="shadow" x="360" y="82" width="220" height="190" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#171917" flood-opacity=".14"/></filter></defs>
+</svg>
