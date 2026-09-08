@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans   : Arial, Helvetica, system-ui, sans-serif;
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-mono   : ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+    /* Surfaces */
+    --color-canvas        : light-dark(#e7e9e5, #121412);
+    --color-surface       : light-dark(#fbfcf9, #1b1e1a);
+    --color-surface-subtle: light-dark(#f1f3ef, #242924);
+    --color-surface-head  : light-dark(#edefea, #292e29);
+    --color-surface-input : light-dark(#fbfcf9, #171a17);
+
+    /* Text */
+    --color-ink      : light-dark(#171917, #f3f5f0);
+    --color-ink-muted: light-dark(#6a706a, #b8beb6);
+    --color-ink-head : light-dark(#4a504a, #c7ccc5);
+
+    /* Borders */
+    --color-border-strong : light-dark(#c8ccc6, #484d46);
+    --color-border-subtle : light-dark(#d8dbd6, #3d443c);
+    --color-border-control: light-dark(#b8bdb6, #596058);
+    --color-border-focus  : light-dark(#737a73, #899287);
+
+    /* Primary action — ink block, surface label; inverts in dark */
+    --color-action    : light-dark(#171917, #f3f5f0);
+    --color-action-ink: light-dark(#fbfcf9, #171917);
+
+    /* Severity — the only semantic color in the product */
+    --color-severity-critical        : light-dark(#b22b22, #ee6c61);
+    --color-severity-critical-surface: light-dark(#f8e2e0, #43221f);
+    --color-severity-critical-ink    : light-dark(#7b1d18, #ffd7d3);
+    --color-severity-major           : light-dark(#b87510, #f1b64e);
+    --color-severity-minor           : light-dark(#697069, #cad0c7);
+}
+
+@layer base {
+    :root {
+        color-scheme: light dark;
+    }
+
+    :root[data-theme="light"] {
+        color-scheme: light;
+    }
+
+    :root[data-theme="dark"] {
+        color-scheme: dark;
+    }
+
+    *,
+    ::before,
+    ::after {
+        border-color: var(--color-border-subtle);
+    }
+
+    body {
+        background-color: var(--color-canvas);
+        color           : var(--color-ink);
+        font-family     : var(--font-sans);
+    }
+}

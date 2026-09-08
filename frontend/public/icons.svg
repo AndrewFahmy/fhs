@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+    <symbol id="logo" viewBox="0 0 27 27" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round">
+        <path d="M7 8H20M7 14H17M7 20H14" />
+    </symbol>
+
+    <symbol id="menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round">
+        <path d="M4 7H20M4 12H20M4 17H20" />
+    </symbol>
+
+    <symbol id="chevron-down" viewBox="0 0 12 8" fill="none" stroke="currentColor"
+        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1.5L6 6.5L11 1.5" />
+    </symbol>
+
+    <symbol id="sun" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round">
+        <circle cx="18" cy="18" r="6" />
+        <path
+            d="M18 4V8M18 28V32M4 18H8M28 18H32M8.2 8.2L11 11M25 25L27.8 27.8M27.8 8.2L25 11M11 25L8.2 27.8" />
+    </symbol>
+
+    <symbol id="moon" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.5"
+        stroke-linejoin="round">
+        <path d="M18 8A11 11 0 1 0 27 25A9 9 0 1 1 18 8Z" />
+    </symbol>
+
+    <symbol id="monitor" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round">
+        <rect x="6" y="8" width="24" height="16" rx="2" />
+        <path d="M18 24V30M13 30H23" />
+    </symbol>
+
+</svg>
