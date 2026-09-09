@@ -13,6 +13,7 @@ var database = postgresCluster.AddDatabase("fhs-db");
 
 var keycloak = builder
     .AddKeycloak("keycloak", 18080)
+    .WithContainerName("fhs-keycloak")
     .WithDataBindMount("../../temp/keycloak")
     .WithRealmImport("../Keycloak/fhs-realm.json");
 
