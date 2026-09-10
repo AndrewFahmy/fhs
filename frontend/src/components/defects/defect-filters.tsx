@@ -1,9 +1,8 @@
-import { endpoints } from "@/api/api-constants";
-import { useGet } from "@/api/api-hooks";
 import type { SetURLSearchParams } from "react-router";
 import Select from "@/components/controls/select";
 import RadioGroup from "@/components/controls/radio-group";
-import type { ErrorCodeListItem, StationListItem } from "@/api/types";
+import StationCombobox from "@/components/stations/station-combobox";
+import ErrorCodeCombobox from "@/components/errorCodes/error-code-combobox";
 import {
     defectsPageHasFilters,
     parseDefectStatusFilter,
@@ -28,9 +27,6 @@ export interface DefectsFiltersProps {
 }
 
 function DefectsFilters({ search, setSearch }: DefectsFiltersProps) {
-    const stations = useGet<StationListItem[]>(endpoints.getStations);
-    const errorCodes = useGet<ErrorCodeListItem[]>(endpoints.getErrorCodes);
-
     function setFilter(key: string, value: string) {
         setSearch((previous) => {
             const params = new URLSearchParams(previous);
@@ -49,28 +45,18 @@ function DefectsFilters({ search, setSearch }: DefectsFiltersProps) {
 
     return (
         <div className="mt-6 flex flex-wrap items-end gap-6 rounded-[5px] border border-border-subtle bg-surface-subtle px-6 py-5">
-            <Select
-                label="Station"
+            <StationCombobox
                 placeholder="All stations"
-                disabled={stations.loading}
+                clearLabel="All stations"
                 value={search.get("stationCode") ?? ""}
-                options={(stations.data ?? []).map((station) => ({
-                    value: station.code,
-                    label: `${station.code} — ${station.name}`,
-                }))}
-                onChange={(value) => setFilter("stationCode", value)}
+                onChange={(code) => setFilter("stationCode", code)}
             />
 
-            <Select
-                label="Error code"
+            <ErrorCodeCombobox
                 placeholder="All error codes"
-                disabled={errorCodes.loading}
+                clearLabel="All error codes"
                 value={search.get("errorCode") ?? ""}
-                options={(errorCodes.data ?? []).map((errorCode) => ({
-                    value: errorCode.code,
-                    label: `${errorCode.code} — ${errorCode.description}`,
-                }))}
-                onChange={(value) => setFilter("errorCode", value)}
+                onChange={(code) => setFilter("errorCode", code)}
             />
 
             <Select

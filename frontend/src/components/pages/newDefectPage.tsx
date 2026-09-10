@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { endpoints, settings } from "@/api/api-constants";
-import { useGet, usePost } from "@/api/api-hooks";
+import { usePost } from "@/api/api-hooks";
 import { defectFieldErrors } from "@/api/helpers/defects";
-import type {
-    CreateDefectRequest,
-    CreateDefectResponse,
-    ErrorCodeListItem,
-    StationListItem,
-} from "@/api/types";
+import type { CreateDefectRequest, CreateDefectResponse } from "@/api/types";
 import ErrorState from "@/components/common/error-state";
 import Icon from "@/components/common/icon";
 import { Button } from "@/components/controls/button";
-import Select from "@/components/controls/select";
+import StationCombobox from "@/components/stations/station-combobox";
+import ErrorCodeCombobox from "@/components/errorCodes/error-code-combobox";
 import Textarea from "@/components/controls/textarea";
 import SeverityMark from "@/components/defects/severity-mark";
 import { defectPath, paths } from "@/routes/navigation";
+import type { Severity } from "@/api/enums";
 
 const nextSteps = [
     {
@@ -34,9 +31,7 @@ function NewDefectPage() {
     const [stationCode, setStationCode] = useState("");
     const [errorCode, setErrorCode] = useState("");
     const [description, setDescription] = useState("");
-
-    const stations = useGet<StationListItem[]>(endpoints.getStations);
-    const errorCodes = useGet<ErrorCodeListItem[]>(endpoints.getErrorCodes);
+    const [severity, setSeverity] = useState<Severity>();
 
     const { post, loading, error } = usePost<
         CreateDefectResponse,
@@ -44,9 +39,6 @@ function NewDefectPage() {
     >(endpoints.createDefect);
 
     const messages = defectFieldErrors(error);
-    const severity = errorCodes.data?.find(
-        (item) => item.code === errorCode,
-    )?.severity;
 
     const complete =
         stationCode !== "" && errorCode !== "" && description.trim() !== "";
@@ -86,37 +78,30 @@ function NewDefectPage() {
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
                 <div className="rounded-md border border-border-strong bg-surface px-8 py-7">
-                    <Select
+                    <StationCombobox
                         variant="field"
                         className="w-full"
-                        label="Station"
                         required
-                        placeholder="Select a station"
-                        disabled={stations.loading || loading}
+                        placeholder="Search stations"
+                        disabled={loading}
                         error={messages.stationcode}
                         value={stationCode}
-                        options={(stations.data ?? []).map((station) => ({
-                            value: station.code,
-                            label: `${station.code} — ${station.name}`,
-                        }))}
                         onChange={setStationCode}
                     />
 
                     <div className="mt-7">
-                        <Select
+                        <ErrorCodeCombobox
                             variant="field"
                             className="w-full"
-                            label="Error code"
                             required
-                            placeholder="Select an error code"
-                            disabled={errorCodes.loading || loading}
+                            placeholder="Search error codes"
+                            disabled={loading}
                             error={messages.errorcode}
                             value={errorCode}
-                            options={(errorCodes.data ?? []).map((item) => ({
-                                value: item.code,
-                                label: `${item.code} — ${item.description}`,
-                            }))}
-                            onChange={setErrorCode}
+                            onChange={(code, item) => {
+                                setErrorCode(code);
+                                setSeverity(item?.severity);
+                            }}
                         />
                     </div>
 
