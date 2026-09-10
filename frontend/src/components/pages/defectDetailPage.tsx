@@ -8,7 +8,7 @@ import Loader from "@/components/common/loader";
 import { Button, buttonClasses } from "@/components/controls/button";
 import SeverityMark from "@/components/defects/severity-mark";
 import StatusPill from "@/components/defects/status-pill";
-import ResolveDialog from "@/components/defects/resolve-dialog";
+import ResolveDialog from "@/components/defects/resolve-defect-dialog";
 import { paths } from "@/routes/navigation";
 import {
     formatWhen,

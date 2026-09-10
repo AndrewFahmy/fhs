@@ -7,6 +7,7 @@ export interface TextareaProps {
     error?: string;
     rows?: number;
     disabled?: boolean;
+    required?: boolean;
 }
 
 function Textarea({
@@ -18,11 +19,21 @@ function Textarea({
     error,
     rows = 5,
     disabled = false,
+    required = false,
 }: TextareaProps) {
+    const borderClass = error
+        ? "border-severity-critical"
+        : "border-border-control";
+
     return (
         <label className="block">
             <span className="flex items-baseline gap-3">
-                <span className="text-sm font-bold text-ink">{label}</span>
+                <span className="text-sm font-bold text-ink">
+                    {label}
+                    {required ? (
+                        <span className="text-severity-critical"> *</span>
+                    ) : null}
+                </span>
                 <span className="text-xs text-ink-muted">
                     {value.length} / {maxLength}
                 </span>
@@ -34,7 +45,7 @@ function Textarea({
                 disabled={disabled}
                 placeholder={placeholder}
                 onChange={(event) => onChange(event.target.value)}
-                className="mt-3 w-full resize-y rounded-sm border-[1.5px] border-border-control bg-surface-input px-4 py-3 text-sm text-ink placeholder:text-ink-muted focus-visible:border-border-focus focus-visible:outline-none disabled:opacity-60"
+                className={`mt-3 w-full resize-y rounded-sm border-[1.5px] ${borderClass} bg-surface-input px-4 py-3 text-sm text-ink placeholder:text-ink-muted focus-visible:border-border-focus focus-visible:outline-none disabled:opacity-60`}
             />
             {error ? (
                 <span className="mt-2 block text-sm text-severity-critical">

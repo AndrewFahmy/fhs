@@ -9,4 +9,5 @@ export const endpoints = {
 
 export const settings = {
     defaultPageSize: 20,
+    descriptionMaxLength: 500,
 };

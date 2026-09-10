@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import axios, { type AxiosResponse } from "axios";
-import { userManager } from "./user-manager";
-import { type RetriedRequestConfig, ApiError, toApiError } from "./types";
+import { userManager } from "@/api/user-manager";
+import { type RetriedRequestConfig, ApiError } from "@/api/types";
+import { toApiError } from "@/api/helpers/common";
 import type { User } from "oidc-client-ts";
 
 const baseUrl = import.meta.env.VITE_API_URL;

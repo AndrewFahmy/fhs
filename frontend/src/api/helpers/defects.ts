@@ -1,5 +1,6 @@
 import { settings } from "@/api/api-constants";
 import type { DefectStatus } from "@/api/enums";
+import type { ApiError } from "@/api/types";
 
 export function parseDefectStatusFilter(search: URLSearchParams): DefectStatus {
     const status = search.get("status");
@@ -34,4 +35,36 @@ export function mapQuery(search: URLSearchParams): string {
     }
 
     return params.toString();
+}
+
+export function defectFieldErrors(
+    error: ApiError | null,
+): Record<string, string> {
+    if (!error) {
+        return {};
+    }
+
+    const messages: Record<string, string> = {};
+
+    for (const fieldError of error.fieldErrors) {
+        messages[fieldError.field.toLowerCase()] = fieldError.message;
+    }
+
+    const detail = error.problem?.detail ?? error.message;
+
+    if (
+        error.code === "Defects.StationNotFound" ||
+        error.code === "Defects.StationInactive"
+    ) {
+        messages.stationcode = detail;
+    }
+
+    if (
+        error.code === "Defects.ErrorCodeNotFound" ||
+        error.code === "Defects.ErrorCodeInactive"
+    ) {
+        messages.errorcode = detail;
+    }
+
+    return messages;
 }
