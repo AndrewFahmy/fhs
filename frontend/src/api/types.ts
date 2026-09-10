@@ -62,6 +62,21 @@ export interface DefectListItem {
     resolvedAt: string | null;
 }
 
+export interface StationListItem {
+    stationId: string;
+    code: string;
+    name: string;
+    isActive: boolean;
+}
+
+export interface ErrorCodeListItem {
+    errorCodeId: string;
+    code: string;
+    description: string;
+    severity: Severity;
+    isActive: boolean;
+}
+
 function isApiProblem(value: unknown): value is ApiProblem {
     return (
         typeof value === "object" &&

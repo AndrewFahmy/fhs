@@ -14,7 +14,7 @@ import {
     flatNavigation,
 } from "@/routes/navigation";
 import type { ReactNode } from "react";
-import ThemeToggle from "../common/theme-toggle";
+import ThemeToggle from "@/components/controls/theme-toggle";
 import { Menu, MenuButton, MenuItem } from "@/components/navigation/menu";
 import Icon from "@/components/common/icon";
 

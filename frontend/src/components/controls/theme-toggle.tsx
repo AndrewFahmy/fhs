@@ -44,7 +44,8 @@ function ThemeToggle() {
         <Menu
             align="end"
             chevron={false}
-            triggerClassName="size-9 justify-center rounded-sm border border-border-control bg-surface-subtle text-ink"
+            triggerVariant="subtle"
+            triggerSize="icon"
             label={
                 <>
                     <Icon name={themeIcons[theme]} className="size-5" />

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import Loader from "../common/loader";
+import Loader from "@/components/common/loader";
 
 export interface DataGridColumn<TItem> {
     key: string;

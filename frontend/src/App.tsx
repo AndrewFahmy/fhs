@@ -1,7 +1,7 @@
 import { useAuth, useAutoSignin } from "react-oidc-context";
 import { RouterProvider } from "react-router";
 import { Notice } from "@/components/common/notice";
-import { Button } from "@/components/common/button";
+import { Button } from "@/components/controls/button";
 import { router } from "@/routes";
 
 function App() {

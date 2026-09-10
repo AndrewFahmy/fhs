@@ -1,4 +1,4 @@
-import { Button } from "@/components/common/button";
+import { Button } from "@/components/controls/button";
 
 export interface PaginationProps {
     page: number;
@@ -26,7 +26,7 @@ function Pagination({
             <div className="flex items-center gap-3">
                 <Button
                     variant="secondary"
-                    className="h-9 px-4"
+                    size="sm"
                     disabled={page <= 1}
                     onClick={() => onPageChange(page - 1)}
                 >
@@ -37,7 +37,7 @@ function Pagination({
                 </span>
                 <Button
                     variant="secondary"
-                    className="h-9 px-4"
+                    size="sm"
                     disabled={page >= totalPages}
                     onClick={() => onPageChange(page + 1)}
                 >

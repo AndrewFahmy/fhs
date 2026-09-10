@@ -7,7 +7,7 @@ import {
     mapQuery,
 } from "@/api/helpers/defects";
 import type { DefectListItem, PagedResponse } from "@/api/types";
-import { Button, buttonClasses } from "@/components/common/button";
+import { Button, buttonClasses } from "@/components/controls/button";
 import DataGrid, { type DataGridColumn } from "@/components/grid/data-grid";
 import Pagination from "@/components/grid/pagination";
 import EmptyState from "@/components/common/empty-state";
@@ -17,6 +17,7 @@ import SeverityMark from "@/components/defects/severity-mark";
 import { defectPath, paths } from "@/routes/navigation";
 import { formatTimestamp, fullTimestamp } from "@/utils/format";
 import { Link, useSearchParams } from "react-router";
+import DefectsFilters from "@/components/defects/defect-filters";
 
 function DefectsPage() {
     const [search, setSearch] = useSearchParams();
@@ -146,6 +147,8 @@ function DefectsPage() {
                     New defect
                 </Link>
             </header>
+
+            <DefectsFilters search={search} setSearch={setSearch} />
 
             <div className="mt-8">
                 {error ? (

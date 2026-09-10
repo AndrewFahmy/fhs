@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router";
-import Icon from "../common/icon";
+import Icon from "@/components/common/icon";
+import {
+    Button,
+    type ButtonSize,
+    type ButtonVariant,
+} from "@/components/controls/button";
 
 export interface MenuProps {
     label: ReactNode;
@@ -8,6 +13,8 @@ export interface MenuProps {
     chevron?: boolean;
     triggerClassName?: string;
     children: ReactNode;
+    triggerVariant?: ButtonVariant;
+    triggerSize?: ButtonSize;
 }
 
 export function Menu({
@@ -16,6 +23,8 @@ export function Menu({
     chevron = true,
     triggerClassName = "",
     children,
+    triggerVariant = "ghost",
+    triggerSize = "none",
 }: MenuProps) {
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -46,18 +55,19 @@ export function Menu({
 
     return (
         <div ref={containerRef} className="relative">
-            <button
-                type="button"
+            <Button
+                variant={triggerVariant}
+                size={triggerSize}
+                className={triggerClassName}
                 aria-haspopup="true"
                 aria-expanded={open}
                 onClick={() => setOpen((wasOpen) => !wasOpen)}
-                className={`flex cursor-pointer items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus ${triggerClassName}`}
             >
                 {label}
                 {chevron ? (
                     <Icon name="chevron-down" className="size-3 shrink-0" />
                 ) : null}
-            </button>
+            </Button>
 
             {open ? (
                 <div

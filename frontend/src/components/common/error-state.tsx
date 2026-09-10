@@ -1,5 +1,5 @@
 import type { ApiError } from "@/api/types";
-import { Button } from "@/components/common/button";
+import { Button } from "@/components/controls/button";
 
 export interface ErrorStateProps {
     error: ApiError;
