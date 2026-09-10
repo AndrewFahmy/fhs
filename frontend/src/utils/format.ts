@@ -23,9 +23,17 @@ export function fullTimestamp(value: string): string {
     return new Date(value).toLocaleString();
 }
 
+export function stringTemplateFormat(template: string, ...args: string[]): string {
+    return template.replace(
+        /{(\d+)}/g,
+        (match, index: string) => args[Number(index)] ?? match,
+    );
+}
 
-// function stringTemplateFormat(template: string, ...args: any[]): string {
-//     return template.replace(/{(\d+)}/g, (match, index) => {
-//         return typeof args[index] !== 'undefined' ? args[index] : match;
-//     });
-// }
+export function formatWhen(value: string): string {
+    const formatted = formatTimestamp(value);
+
+    return formatted.includes(" ")
+        ? `on ${formatted.replace(" ", " at ")}`
+        : `today at ${formatted}`;
+}

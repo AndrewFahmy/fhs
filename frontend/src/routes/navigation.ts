@@ -23,6 +23,7 @@ export const paths = {
     errorCodes: "/error-codes",
     customers: "/customers",
     newDefect: "/defects/new",
+    defectDetail: "/defects/:defectId",
 } as const;
 
 export const navigation: NavEntry[] = [

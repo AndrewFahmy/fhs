@@ -1,6 +1,7 @@
 import RootLayout from "@/components/layout/root-layout";
 import DashboardPage from "@/components/pages/dashboard";
 import DefectsPage from "@/components/pages/defectsPage";
+import DefectDetailPage from "@/components/pages/defectDetailPage";
 import { createBrowserRouter } from "react-router";
 import { paths } from "./navigation";
 
@@ -17,7 +18,11 @@ export const router = createBrowserRouter([
             {
                 path: paths.defects,
                 element: <DefectsPage />,
-            }
+            },
+            {
+                path: paths.defectDetail,
+                element: <DefectDetailPage />,
+            },
         ],
     },
 ]);

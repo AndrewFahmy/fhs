@@ -4,7 +4,7 @@ export interface IconProps {
 }
 
 function Icon({ name, className = "size-4" }: IconProps) {
-    const ICONS_VERSION = "2";
+    const ICONS_VERSION = "1";
 
     return (
         <svg aria-hidden="true" className={className}>
@@ -19,7 +19,10 @@ export type IconName =
     | "logo"
     | "menu"
     | "chevron-down"
+    | "chevron-left"
     | "sun"
     | "moon"
     | "monitor"
-    | "plus";
+    | "plus"
+    | "close"
+    | "alert";
