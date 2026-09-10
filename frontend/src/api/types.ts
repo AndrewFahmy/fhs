@@ -1,4 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
+import type { Severity } from "./enums";
 
 export interface FieldError {
     field: string;
@@ -48,6 +49,17 @@ export class ApiError extends Error {
 
 export interface RetriedRequestConfig extends InternalAxiosRequestConfig {
     retried?: boolean;
+}
+
+export interface DefectListItem {
+    defectId: string;
+    stationCode: string;
+    errorCode: string;
+    severity: Severity;
+    description: string;
+    raisedBy: string;
+    createdAt: string;
+    resolvedAt: string | null;
 }
 
 function isApiProblem(value: unknown): value is ApiProblem {

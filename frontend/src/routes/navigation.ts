@@ -22,6 +22,7 @@ export const paths = {
     stations: "/stations",
     errorCodes: "/error-codes",
     customers: "/customers",
+    newDefect: "/defects/new",
 } as const;
 
 export const navigation: NavEntry[] = [
@@ -41,3 +42,7 @@ export const navigation: NavEntry[] = [
 export const flatNavigation: NavItem[] = navigation.flatMap((entry) =>
     isNavGroup(entry) ? entry.items : [entry],
 );
+
+export function defectPath(defectId: string): string {
+    return `/defects/${defectId}`;
+}

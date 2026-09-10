@@ -32,4 +32,8 @@
         <path d="M18 24V30M13 30H23" />
     </symbol>
 
+    <symbol id="plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M5 12H19M12 5V19" />
+    </symbol>
+
 </svg>

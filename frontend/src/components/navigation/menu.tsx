@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router";
-import Icon from "./icon";
+import Icon from "../common/icon";
 
 export interface MenuProps {
     label: ReactNode;

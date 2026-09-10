@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Icon, { type IconName } from "@/components/common/icon";
-import { Menu, MenuButton } from "@/components/common/menu";
+import { Menu, MenuButton } from "@/components/navigation/menu";
 
 type Theme = "system" | "light" | "dark";
 
