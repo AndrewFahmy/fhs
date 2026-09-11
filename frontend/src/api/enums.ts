@@ -1,3 +1,3 @@
 export type Severity = "Minor" | "Major" | "Critical";
 
-export type DefectStatus = "open" | "resolved" | "all";
+export type StatusFilter = "open" | "resolved" | "all";

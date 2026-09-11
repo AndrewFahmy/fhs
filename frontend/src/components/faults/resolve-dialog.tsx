@@ -1,32 +1,60 @@
 import { useState } from "react";
-import { endpoints } from "@/api/api-constants";
+import { endpoints, settings } from "@/api/api-constants";
 import { usePost } from "@/api/api-hooks";
-import type { DefectDetailResponse } from "@/api/types";
+import type { Severity } from "@/api/enums";
 import Banner from "@/components/common/banner";
-import Dialog from "@/components/controls/dialog";
+import SeverityMark from "@/components/common/severity-mark";
 import { Button } from "@/components/controls/button";
+import Dialog from "@/components/controls/dialog";
 import Textarea from "@/components/controls/textarea";
-import SeverityMark from "@/components/defects/severity-mark";
 import { formatTimestamp, stringTemplateFormat } from "@/utils/format";
+import { fieldErrorsOf } from "@/api/api-helpers";
 
-const maxResolutionLength = 500;
+const kinds = {
+    defect: {
+        title: "Resolve defect",
+        endpoint: endpoints.resolveDefect,
+        opened: "Raised",
+    },
+    escape: {
+        title: "Resolve escape",
+        endpoint: endpoints.resolveEscape,
+        opened: "Reported",
+    },
+};
 
 export interface ResolveDialogProps {
-    defect: DefectDetailResponse;
+    kind: keyof typeof kinds;
+    id: string;
+    severity: Severity;
+    /** Station code for a defect, customer code for an escape. */
+    sourceCode: string;
+    errorCode: string;
+    openedAt: string;
+    openedBy: string;
     onClose: () => void;
     onResolved: () => void;
 }
 
-function ResolveDialog({ defect, onClose, onResolved }: ResolveDialogProps) {
+function ResolveDialog({
+    kind,
+    id,
+    severity,
+    sourceCode,
+    errorCode,
+    openedAt,
+    openedBy,
+    onClose,
+    onResolved,
+}: ResolveDialogProps) {
     const [resolution, setResolution] = useState("");
+    const { title, endpoint, opened } = kinds[kind];
 
     const { post, loading, error } = usePost<void, { resolution: string }>(
-        stringTemplateFormat(endpoints.resolveDefect, defect.defectId),
+        stringTemplateFormat(endpoint, id),
     );
 
-    const fieldError = error?.fieldErrors.find(
-        (item) => item.field.toLowerCase() === "resolution",
-    )?.message;
+    const fieldError = fieldErrorsOf(error).resolution;
 
     const stale =
         error !== null && (error.status === 409 || error.status === 404);
@@ -46,7 +74,7 @@ function ResolveDialog({ defect, onClose, onResolved }: ResolveDialogProps) {
 
     return (
         <Dialog
-            title="Resolve defect"
+            title={title}
             onClose={onClose}
             footer={
                 <>
@@ -63,24 +91,24 @@ function ResolveDialog({ defect, onClose, onResolved }: ResolveDialogProps) {
             }
         >
             <div className="flex items-center gap-3 text-[13px]">
-                <SeverityMark severity={defect.severity} />
+                <SeverityMark severity={severity} />
                 <span className="font-mono font-bold text-ink">
-                    {defect.stationCode}
+                    {sourceCode}
                 </span>
                 <span className="text-ink-muted">/</span>
                 <span className="font-mono font-bold text-ink">
-                    {defect.errorCode}
+                    {errorCode}
                 </span>
             </div>
             <p className="mt-3 text-[13px] text-ink-muted">
-                Raised {formatTimestamp(defect.createdAt)} by {defect.raisedBy}
+                {opened} {formatTimestamp(openedAt)} by {openedBy}
             </p>
 
             <div className="mt-6">
                 <Textarea
                     label="Resolution"
                     value={resolution}
-                    maxLength={maxResolutionLength}
+                    maxLength={settings.resolutionMaxLength}
                     disabled={loading}
                     error={fieldError}
                     placeholder="Describe the corrective action taken"
@@ -93,7 +121,7 @@ function ResolveDialog({ defect, onClose, onResolved }: ResolveDialogProps) {
                     <Banner
                         message={
                             error.problem?.detail ??
-                            "This defect changed while you were typing."
+                            `This ${kind} changed while you were typing.`
                         }
                         action={
                             <Button

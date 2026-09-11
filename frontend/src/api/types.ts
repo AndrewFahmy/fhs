@@ -103,3 +103,48 @@ export interface CreateDefectRequest {
 export interface CreateDefectResponse {
     defectId: string;
 }
+
+export interface CustomerListItem {
+    customerId: string;
+    code: string;
+    name: string;
+    isActive: boolean;
+}
+
+export interface EscapeListItem {
+    escapeId: string;
+    customerCode: string;
+    errorCode: string;
+    severity: Severity;
+    description: string;
+    reportedBy: string;
+    reportedAt: string;
+    resolvedAt: string | null;
+}
+
+export interface EscapeDetailResponse {
+    escapeId: string;
+    customerId: string;
+    customerCode: string;
+    customerName: string;
+    errorCodeId: string;
+    errorCode: string;
+    errorCodeDescription: string;
+    severity: Severity;
+    description: string;
+    reportedBy: string;
+    reportedAt: string;
+    resolution: string | null;
+    resolvedBy: string | null;
+    resolvedAt: string | null;
+}
+
+export interface CreateEscapeRequest {
+    customerCode: string;
+    errorCode: string;
+    description: string;
+}
+
+export interface CreateEscapeResponse {
+    escapeId: string;
+}

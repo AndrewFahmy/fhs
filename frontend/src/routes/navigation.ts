@@ -24,6 +24,8 @@ export const paths = {
     customers: "/customers",
     newDefect: "/defects/new",
     defectDetail: "/defects/:defectId",
+    newEscape: "/escapes/new",
+    escapeDetail: "/escapes/:escapeId",
 } as const;
 
 export const navigation: NavEntry[] = [
@@ -47,3 +49,8 @@ export const flatNavigation: NavItem[] = navigation.flatMap((entry) =>
 export function defectPath(defectId: string): string {
     return `/defects/${defectId}`;
 }
+
+export function escapePath(escapeId: string): string {
+    return `/escapes/${escapeId}`;
+}
+

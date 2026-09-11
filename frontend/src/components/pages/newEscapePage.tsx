@@ -2,85 +2,85 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { endpoints, settings } from "@/api/api-constants";
 import { usePost } from "@/api/api-hooks";
-import { fieldErrorsOf, defectErrorFields } from "@/api/api-helpers";
-import type { CreateDefectRequest, CreateDefectResponse } from "@/api/types";
-import ErrorState from "@/components/common/error-state";
-import { Button } from "@/components/controls/button";
-import StationCombobox from "@/components/stations/station-combobox";
-import ErrorCodeCombobox from "@/components/errorCodes/error-code-combobox";
-import Textarea from "@/components/controls/textarea";
-import SeverityMark from "@/components/common/severity-mark";
-import { defectPath, paths } from "@/routes/navigation";
 import type { Severity } from "@/api/enums";
+import { fieldErrorsOf, escapeErrorFields } from "@/api/api-helpers";
+import type { CreateEscapeRequest, CreateEscapeResponse } from "@/api/types";
+import ErrorState from "@/components/common/error-state";
+import SeverityMark from "@/components/common/severity-mark";
+import { Button } from "@/components/controls/button";
+import Textarea from "@/components/controls/textarea";
+import CustomerCombobox from "@/components/customers/customer-combobox";
+import ErrorCodeCombobox from "@/components/errorCodes/error-code-combobox";
 import BackLink from "@/components/navigation/back-link";
+import { escapePath, paths } from "@/routes/navigation";
 
-const nextSteps = [
+const recordNotes = [
     {
-        title: "The fault is classified",
-        detail: "Severity is set from the selected code.",
+        title: "Customer context stays explicit",
+        detail: "This record is about what reached the customer.",
     },
     {
-        title: "The open fault enters the queue",
-        detail: "It is visible to the next responsible operator.",
+        title: "No inferred production origin",
+        detail: "It never claims a station or internal defect link.",
     },
 ];
 
-function NewDefectPage() {
+function NewEscapePage() {
     const navigate = useNavigate();
 
-    const [stationCode, setStationCode] = useState("");
+    const [customerCode, setCustomerCode] = useState("");
     const [errorCode, setErrorCode] = useState("");
     const [description, setDescription] = useState("");
     const [severity, setSeverity] = useState<Severity>();
 
     const { post, loading, error } = usePost<
-        CreateDefectResponse,
-        CreateDefectRequest
-    >(endpoints.createDefect);
+        CreateEscapeResponse,
+        CreateEscapeRequest
+    >(endpoints.createEscape);
 
-    const messages = fieldErrorsOf(error, defectErrorFields);
+    const messages = fieldErrorsOf(error, escapeErrorFields);
 
     const complete =
-        stationCode !== "" && errorCode !== "" && description.trim() !== "";
+        customerCode !== "" && errorCode !== "" && description.trim() !== "";
 
     async function submit() {
-        const response = await post({ stationCode, errorCode, description });
+        const response = await post({ customerCode, errorCode, description });
 
         if (response) {
-            void navigate(defectPath(response.data.defectId), {
+            void navigate(escapePath(response.data.escapeId), {
                 replace: true,
             });
         }
     }
 
     if (error?.status === 403) {
-        return <ErrorState error={error} title="You cannot raise defects." />;
+        return <ErrorState error={error} title="You cannot report escapes." />;
     }
 
     return (
         <>
-            <BackLink to={paths.defects}>Defects</BackLink>
+            <BackLink to={paths.escapes}>Escapes</BackLink>
 
             <header className="mt-6">
                 <h1 className="font-display text-[38px] leading-tight font-bold text-ink">
-                    Raise a defect
+                    Report an escape
                 </h1>
                 <p className="mt-1 text-sm text-ink-muted">
-                    Record the fault at the point it was found.
+                    Capture the customer-reported fault and its classification.
                 </p>
             </header>
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
                 <div className="rounded-md border border-border-strong bg-surface px-8 py-7">
-                    <StationCombobox
+                    <CustomerCombobox
                         variant="field"
                         className="w-full"
                         required
-                        placeholder="Search stations"
+                        placeholder="Search customers"
                         disabled={loading}
-                        error={messages.stationcode}
-                        value={stationCode}
-                        onChange={setStationCode}
+                        error={messages.customercode}
+                        value={customerCode}
+                        onChange={setCustomerCode}
                     />
 
                     <div className="mt-7">
@@ -110,13 +110,13 @@ function NewDefectPage() {
 
                     <div className="mt-7">
                         <Textarea
-                            label="Description"
+                            label="Customer report"
                             required
                             rows={5}
                             maxLength={settings.descriptionMaxLength}
                             disabled={loading}
                             error={messages.description}
-                            placeholder="Describe what was found and where."
+                            placeholder="Describe what the customer found or reported."
                             value={description}
                             onChange={setDescription}
                         />
@@ -125,25 +125,17 @@ function NewDefectPage() {
 
                 <aside className="h-fit rounded-md border border-border-subtle bg-surface-subtle px-7 py-6">
                     <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
-                        What happens next
+                        Escape record
                     </p>
-                    <div className="mt-4 border-t border-border-subtle pt-5">
-                        {nextSteps.map((step, index) => (
-                            <div
-                                key={step.title}
-                                className={`flex gap-4 ${index > 0 ? "mt-6" : ""}`}
-                            >
-                                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-action text-[10px] font-bold text-action-ink">
-                                    {index + 1}
-                                </span>
-                                <div>
-                                    <p className="text-sm font-bold text-ink">
-                                        {step.title}
-                                    </p>
-                                    <p className="mt-1 text-[13px] text-ink-muted">
-                                        {step.detail}
-                                    </p>
-                                </div>
+                    <div className="mt-4 space-y-6 border-t border-border-subtle pt-5">
+                        {recordNotes.map((note) => (
+                            <div key={note.title}>
+                                <p className="text-sm font-bold text-ink">
+                                    {note.title}
+                                </p>
+                                <p className="mt-1 text-[13px] text-ink-muted">
+                                    {note.detail}
+                                </p>
                             </div>
                         ))}
                     </div>
@@ -152,7 +144,7 @@ function NewDefectPage() {
 
             <div className="mt-8 flex items-center justify-end gap-4 border-t border-border-strong pt-6">
                 <Link
-                    to={paths.defects}
+                    to={paths.escapes}
                     className="text-sm font-bold text-ink hover:underline"
                 >
                     Cancel
@@ -161,11 +153,11 @@ function NewDefectPage() {
                     disabled={loading || !complete}
                     onClick={() => void submit()}
                 >
-                    {loading ? "Raising…" : "Raise defect"}
+                    {loading ? "Reporting…" : "Report escape"}
                 </Button>
             </div>
         </>
     );
 }
 
-export default NewDefectPage;
+export default NewEscapePage;

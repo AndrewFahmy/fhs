@@ -7,7 +7,7 @@ public sealed record EscapeDetailResponse(
     Guid CustomerId,
     string CustomerCode,
     string CustomerName,
-    Guid ErrorCOdeId,
+    Guid ErrorCodeId,
     string ErrorCode,
     string ErrorCodeDescription,
     Severity Severity,

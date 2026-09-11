@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { endpoints } from "@/api/api-constants";
 import { useGet } from "@/api/api-hooks";
-import type { DefectDetailResponse } from "@/api/types";
+import type { EscapeDetailResponse } from "@/api/types";
 import EmptyState from "@/components/common/empty-state";
 import ErrorState from "@/components/common/error-state";
 import Loader from "@/components/common/loader";
@@ -21,15 +21,15 @@ import {
     stringTemplateFormat,
 } from "@/utils/format";
 
-function DefectDetailPage() {
-    const { defectId = "" } = useParams();
+function EscapeDetailPage() {
+    const { escapeId = "" } = useParams();
     const [resolving, setResolving] = useState(false);
 
-    const { data, error, loading, refetch } = useGet<DefectDetailResponse>(
-        stringTemplateFormat(endpoints.getDefectDetails, defectId),
+    const { data, error, loading, refetch } = useGet<EscapeDetailResponse>(
+        stringTemplateFormat(endpoints.getEscapeDetails, escapeId),
     );
 
-    const backLink = <BackLink to={paths.defects}>Defects</BackLink>;
+    const backLink = <BackLink to={paths.escapes}>Escapes</BackLink>;
 
     if (error?.status === 404) {
         return (
@@ -37,16 +37,16 @@ function DefectDetailPage() {
                 {backLink}
                 <div className="mt-8">
                     <EmptyState
-                        title="This defect no longer exists."
+                        title="This escape no longer exists."
                         description="It may have been removed since the list was loaded."
                         action={
                             <Link
-                                to={paths.defects}
+                                to={paths.escapes}
                                 className={buttonClasses({
                                     variant: "secondary",
                                 })}
                             >
-                                Back to defects
+                                Back to escapes
                             </Link>
                         }
                     />
@@ -62,7 +62,7 @@ function DefectDetailPage() {
                 <div className="mt-8">
                     <ErrorState
                         error={error}
-                        title="This defect could not be loaded."
+                        title="This escape could not be loaded."
                         onRetry={refetch}
                     />
                 </div>
@@ -93,13 +93,13 @@ function DefectDetailPage() {
             <header className="mt-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="font-display text-[38px] leading-tight font-bold text-ink">
-                        {data.stationCode} / {data.errorCode}
+                        {data.customerCode} / {data.errorCode}
                     </h1>
                     <p className="mt-1 text-sm text-ink-muted">
-                        <span title={fullTimestamp(data.createdAt)}>
-                            Raised {formatWhen(data.createdAt)}
+                        <span title={fullTimestamp(data.reportedAt)}>
+                            Reported {formatWhen(data.reportedAt)}
                         </span>{" "}
-                        by {data.raisedBy}
+                        by {data.reportedBy}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -107,7 +107,7 @@ function DefectDetailPage() {
                     <StatusPill resolved={resolved} />
                     {resolved ? null : (
                         <Button onClick={() => setResolving(true)}>
-                            Resolve defect
+                            Resolve escape
                         </Button>
                     )}
                 </div>
@@ -115,7 +115,7 @@ function DefectDetailPage() {
 
             <div className="mt-8 border-t border-border-strong pt-8">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
-                    Description
+                    Customer report
                 </p>
                 <p className="mt-4 max-w-4xl font-display text-[23px] leading-relaxed text-ink">
                     {data.description}
@@ -124,12 +124,12 @@ function DefectDetailPage() {
 
             <div className="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
                 <div className="rounded-[5px] border border-border-subtle bg-surface-subtle">
-                    <DetailField label="Station">
+                    <DetailField label="Customer">
                         <span className="font-mono font-bold">
-                            {data.stationCode}
+                            {data.customerCode}
                         </span>{" "}
                         <span className="text-ink-muted">
-                            {data.stationName}
+                            {data.customerName}
                         </span>
                     </DetailField>
                     <DetailField label="Error code">
@@ -140,10 +140,12 @@ function DefectDetailPage() {
                             {data.errorCodeDescription}
                         </span>
                     </DetailField>
-                    <DetailField label="Raised by">{data.raisedBy}</DetailField>
-                    <DetailField label="Raised at">
-                        <span title={fullTimestamp(data.createdAt)}>
-                            {formatWhen(data.createdAt)}
+                    <DetailField label="Reported by">
+                        {data.reportedBy}
+                    </DetailField>
+                    <DetailField label="Reported at">
+                        <span title={fullTimestamp(data.reportedAt)}>
+                            {formatWhen(data.reportedAt)}
                         </span>
                     </DetailField>
                 </div>
@@ -152,19 +154,19 @@ function DefectDetailPage() {
                     resolution={data.resolution}
                     resolvedBy={data.resolvedBy}
                     resolvedAt={data.resolvedAt}
-                    openNote="An open defect remains visible to the next operator."
+                    openNote="An open escape remains visible until the customer has a response."
                 />
             </div>
 
             {resolving ? (
                 <ResolveDialog
-                    kind="defect"
-                    id={data.defectId}
+                    kind="escape"
+                    id={data.escapeId}
                     severity={data.severity}
-                    sourceCode={data.stationCode}
+                    sourceCode={data.customerCode}
                     errorCode={data.errorCode}
-                    openedAt={data.createdAt}
-                    openedBy={data.raisedBy}
+                    openedAt={data.reportedAt}
+                    openedBy={data.reportedBy}
                     onClose={() => setResolving(false)}
                     onResolved={() => {
                         setResolving(false);
@@ -176,4 +178,4 @@ function DefectDetailPage() {
     );
 }
 
-export default DefectDetailPage;
+export default EscapeDetailPage;

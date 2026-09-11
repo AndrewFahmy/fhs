@@ -1,48 +1,48 @@
 import { Link } from "react-router";
 import { endpoints } from "@/api/api-constants";
 import { useGet } from "@/api/api-hooks";
-import type { DefectListItem, PagedResponse } from "@/api/types";
+import type { EscapeListItem, PagedResponse } from "@/api/types";
 import EmptyState from "@/components/common/empty-state";
 import ErrorState from "@/components/common/error-state";
 import Icon from "@/components/common/icon";
 import SeverityMark from "@/components/common/severity-mark";
 import { Button } from "@/components/controls/button";
 import { buttonClasses } from "@/utils/button-helpers";
+import CustomerCombobox from "@/components/customers/customer-combobox";
 import FaultFilters from "@/components/faults/fault-filters";
-import { useFaultFilters } from "@/utils/use-fault-filters";
 import DataGrid, { type DataGridColumn } from "@/components/grid/data-grid";
 import Pagination from "@/components/grid/pagination";
-import StationCombobox from "@/components/stations/station-combobox";
-import { defectPath, paths } from "@/routes/navigation";
+import { escapePath, paths } from "@/routes/navigation";
 import { formatTimestamp, fullTimestamp } from "@/utils/format";
+import { useFaultFilters } from "@/utils/use-fault-filters";
 
-function DefectsPage() {
-    const filters = useFaultFilters("stationCode");
+function EscapesPage() {
+    const filters = useFaultFilters("customerCode");
 
     const { data, error, loading, refetch } = useGet<
-        PagedResponse<DefectListItem>
-    >(`${endpoints.getDefects}?${filters.query}`);
+        PagedResponse<EscapeListItem>
+    >(`${endpoints.getEscapes}?${filters.query}`);
 
-    const columns: DataGridColumn<DefectListItem>[] = [
+    const columns: DataGridColumn<EscapeListItem>[] = [
         {
             key: "severity",
             header: "Severity",
             width: "140px",
             loaderClassName: "w-24",
-            render: (defect) => (
+            render: (escape) => (
                 <SeverityMark
-                    severity={defect.severity}
-                    muted={defect.resolvedAt !== null}
+                    severity={escape.severity}
+                    muted={escape.resolvedAt !== null}
                 />
             ),
         },
         {
-            key: "station",
-            header: "Station",
-            width: "110px",
+            key: "customer",
+            header: "Customer",
+            width: "140px",
             className: "font-mono font-bold",
             loaderClassName: "w-14",
-            render: (defect) => defect.stationCode,
+            render: (escape) => escape.customerCode,
         },
         {
             key: "errorCode",
@@ -50,32 +50,32 @@ function DefectsPage() {
             width: "140px",
             className: "font-mono font-bold",
             loaderClassName: "w-20",
-            render: (defect) => defect.errorCode,
+            render: (escape) => escape.errorCode,
         },
         {
             key: "description",
-            header: "Description",
+            header: "Customer report",
             width: "minmax(0,1fr)",
             className: "truncate",
             loaderClassName: "w-full",
-            title: (defect) => defect.description,
-            render: (defect) => defect.description,
+            title: (escape) => escape.description,
+            render: (escape) => escape.description,
         },
         {
-            key: "raisedBy",
-            header: "Raised by",
+            key: "reportedBy",
+            header: "Reported by",
             width: "170px",
             className: "truncate",
             loaderClassName: "w-24",
-            render: (defect) => defect.raisedBy,
+            render: (escape) => escape.reportedBy,
         },
         {
-            key: "raised",
-            header: "Raised",
+            key: "reported",
+            header: "Reported",
             width: "110px",
             loaderClassName: "w-10",
-            title: (defect) => fullTimestamp(defect.createdAt),
-            render: (defect) => formatTimestamp(defect.createdAt),
+            title: (escape) => fullTimestamp(escape.reportedAt),
+            render: (escape) => formatTimestamp(escape.reportedAt),
         },
     ];
 
@@ -85,16 +85,16 @@ function DefectsPage() {
             header: "Resolved",
             width: "110px",
             loaderClassName: "w-10",
-            title: (defect) =>
-                defect.resolvedAt ? fullTimestamp(defect.resolvedAt) : "",
-            render: (defect) =>
-                defect.resolvedAt ? formatTimestamp(defect.resolvedAt) : "—",
+            title: (escape) =>
+                escape.resolvedAt ? fullTimestamp(escape.resolvedAt) : "",
+            render: (escape) =>
+                escape.resolvedAt ? formatTimestamp(escape.resolvedAt) : "—",
         });
     }
 
     const empty = filters.filtered ? (
         <EmptyState
-            title="No defects match these filters."
+            title="No escapes match these filters."
             action={
                 <Button variant="secondary" onClick={filters.clear}>
                     Clear filters
@@ -103,11 +103,11 @@ function DefectsPage() {
         />
     ) : (
         <EmptyState
-            title="No open defects."
-            description="Nothing is waiting on the line right now."
+            title="No open escapes."
+            description="No customer report is waiting on a response."
             action={
-                <Link to={paths.newDefect} className={buttonClasses()}>
-                    New defect
+                <Link to={paths.newEscape} className={buttonClasses()}>
+                    New escape
                 </Link>
             }
         />
@@ -118,24 +118,24 @@ function DefectsPage() {
             <header className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h1 className="font-display text-4xl font-bold text-ink">
-                        Defects
+                        Escapes
                     </h1>
                     <p className="mt-2 text-sm text-ink-muted">
-                        Open quality faults from the production line
+                        Customer-reported faults requiring a response
                     </p>
                 </div>
-                <Link to={paths.newDefect} className={buttonClasses()}>
+                <Link to={paths.newEscape} className={buttonClasses()}>
                     <Icon name="plus" className="size-4" />
-                    New defect
+                    New escape
                 </Link>
             </header>
 
             <FaultFilters filters={filters}>
-                <StationCombobox
-                    placeholder="All stations"
-                    clearLabel="All stations"
-                    value={filters.get("stationCode")}
-                    onChange={(code) => filters.set("stationCode", code)}
+                <CustomerCombobox
+                    placeholder="All customers"
+                    clearLabel="All customers"
+                    value={filters.get("customerCode")}
+                    onChange={(code) => filters.set("customerCode", code)}
                 />
             </FaultFilters>
 
@@ -143,7 +143,7 @@ function DefectsPage() {
                 {error ? (
                     <ErrorState
                         error={error}
-                        title="Defects could not be loaded."
+                        title="Escapes could not be loaded."
                         onRetry={refetch}
                     />
                 ) : (
@@ -151,8 +151,8 @@ function DefectsPage() {
                         columns={columns}
                         items={data?.items}
                         loading={loading}
-                        rowKey={(defect) => defect.defectId}
-                        rowHref={(defect) => defectPath(defect.defectId)}
+                        rowKey={(escape) => escape.escapeId}
+                        rowHref={(escape) => escapePath(escape.escapeId)}
                         empty={empty}
                         footer={
                             data && data.totalCount > 0 ? (
@@ -172,4 +172,4 @@ function DefectsPage() {
     );
 }
 
-export default DefectsPage;
+export default EscapesPage;

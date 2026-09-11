@@ -38,7 +38,7 @@ function SeverityMark({
 
     if (!badge) {
         return (
-            <span className="inline-flex item-center gap-2.5">{content}</span>
+            <span className="inline-flex items-center gap-2.5">{content}</span>
         );
     }
 

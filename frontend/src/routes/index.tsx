@@ -5,6 +5,9 @@ import DefectDetailPage from "@/components/pages/defectDetailPage";
 import { createBrowserRouter } from "react-router";
 import { paths } from "@/routes/navigation";
 import NewDefectPage from "@/components/pages/newDefectPage";
+import EscapesPage from "@/components/pages/escapesPage";
+import EscapeDetailPage from "@/components/pages/escapeDetailPage";
+import NewEscapePage from "@/components/pages/newEscapePage";
 
 export const router = createBrowserRouter([
     {
@@ -27,6 +30,18 @@ export const router = createBrowserRouter([
             {
                 path: paths.newDefect,
                 element: <NewDefectPage />,
+            },
+            {
+                path: paths.escapes,
+                element: <EscapesPage />,
+            },
+            {
+                path: paths.escapeDetail,
+                element: <EscapeDetailPage />,
+            },
+            {
+                path: paths.newEscape,
+                element: <NewEscapePage />,
             },
         ],
     },

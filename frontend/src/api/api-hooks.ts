@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios, { type AxiosResponse } from "axios";
 import { userManager } from "@/api/user-manager";
 import { type RetriedRequestConfig, ApiError } from "@/api/types";
-import { toApiError } from "@/api/helpers/common";
+import { toApiError } from "@/api/api-helpers";
 import type { User } from "oidc-client-ts";
 
 const baseUrl = import.meta.env.VITE_API_URL;
@@ -80,27 +80,44 @@ apiClient.interceptors.response.use(
 export function useGet<T>(url: string) {
     const [data, setData] = useState<T | null>(null);
     const [error, setError] = useState<ApiError | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const response = await apiClient.get<T>(url);
-            setData(response.data);
-        } catch (cause) {
-            setError(toApiError(cause));
-        } finally {
-            setLoading(false);
-        }
-    }, [url]);
+    /** The url whose response `data`/`error` hold; any other url is still loading. */
+    const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+    /** Bumped by `refetch` to run the same url again. */
+    const [reloads, setReloads] = useState(0);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        let ignore = false;
 
-    return { data, error, loading, refetch: fetchData };
+        apiClient
+            .get<T>(url)
+            .then((response) => {
+                if (!ignore) {
+                    setData(response.data);
+                    setError(null);
+                    setLoadedUrl(url);
+                }
+            })
+            .catch((cause: unknown) => {
+                if (!ignore) {
+                    setError(toApiError(cause));
+                    setLoadedUrl(url);
+                }
+            });
+
+        // A newer request, or unmounting, makes this response stale.
+        return () => {
+            ignore = true;
+        };
+    }, [url, reloads]);
+
+    function refetch() {
+        setLoadedUrl(null);
+        setReloads((count) => count + 1);
+    }
+
+    const loading = loadedUrl !== url;
+
+    return { data, error: loading ? null : error, loading, refetch };
 }
 
 export function useDelete<TResponse = void>(url: string) {

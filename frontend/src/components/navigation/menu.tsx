@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router";
 import Icon from "@/components/common/icon";
-import {
-    Button,
-    type ButtonSize,
-    type ButtonVariant,
-} from "@/components/controls/button";
+import { Button } from "@/components/controls/button";
+import type { ButtonSize, ButtonVariant } from "@/utils/button-helpers";
 
 export interface MenuProps {
     label: ReactNode;
