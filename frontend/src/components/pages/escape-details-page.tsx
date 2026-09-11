@@ -21,7 +21,7 @@ import {
     stringTemplateFormat,
 } from "@/utils/format";
 
-function EscapeDetailPage() {
+function EscapeDetailsPage() {
     const { escapeId = "" } = useParams();
     const [resolving, setResolving] = useState(false);
 
@@ -178,4 +178,4 @@ function EscapeDetailPage() {
     );
 }
 
-export default EscapeDetailPage;
+export default EscapeDetailsPage;

@@ -21,7 +21,7 @@ import {
     stringTemplateFormat,
 } from "@/utils/format";
 
-function DefectDetailPage() {
+function DefectDetailsPage() {
     const { defectId = "" } = useParams();
     const [resolving, setResolving] = useState(false);
 
@@ -176,4 +176,4 @@ function DefectDetailPage() {
     );
 }
 
-export default DefectDetailPage;
+export default DefectDetailsPage;

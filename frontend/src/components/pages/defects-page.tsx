@@ -12,7 +12,7 @@ import FaultFilters from "@/components/faults/fault-filters";
 import { useFaultFilters } from "@/utils/use-fault-filters";
 import DataGrid, { type DataGridColumn } from "@/components/grid/data-grid";
 import Pagination from "@/components/grid/pagination";
-import StationCombobox from "@/components/stations/station-combobox";
+import StationCombobox from "@/components/lookups/station-combobox";
 import { defectPath, paths } from "@/routes/navigation";
 import { formatTimestamp, fullTimestamp } from "@/utils/format";
 

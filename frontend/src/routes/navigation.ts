@@ -5,7 +5,6 @@ export interface NavItem {
 
 export interface NavGroup {
     label: string;
-    match: string;
     items: NavItem[];
 }
 
@@ -32,8 +31,7 @@ export const navigation: NavEntry[] = [
     { label: "Defects", to: paths.defects },
     { label: "Escapes", to: paths.escapes },
     {
-        label: "Reference",
-        match: "/reference",
+        label: "Lookups",
         items: [
             { label: "Stations", to: paths.stations },
             { label: "Error Codes", to: paths.errorCodes },

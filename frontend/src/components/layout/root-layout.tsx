@@ -45,7 +45,9 @@ function mapNavigationEntry(
         );
     }
 
-    const active = location.pathname.startsWith(entry.match);
+    const active = entry.items.some((item) =>
+        location.pathname.startsWith(item.to),
+    );
 
     return (
         <Menu

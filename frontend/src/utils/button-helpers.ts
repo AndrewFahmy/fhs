@@ -1,7 +1,12 @@
 import type { ButtonHTMLAttributes } from "react";
 
-export type ButtonVariant = "primary" | "secondary" | "subtle" | "ghost";
 export type ButtonSize = "md" | "sm" | "icon" | "none";
+export type ButtonVariant =
+    | "primary"
+    | "secondary"
+    | "subtle"
+    | "ghost"
+    | "link";
 
 const variantClasses: Record<ButtonVariant, string> = {
     primary: "bg-action text-action-ink hover:opacity-90",
@@ -9,6 +14,7 @@ const variantClasses: Record<ButtonVariant, string> = {
         "border border-border-control bg-surface text-ink hover:bg-surface-subtle",
     subtle: "border border-border-control bg-surface-subtle text-ink hover:bg-surface-head",
     ghost: "text-ink",
+    link: "font-bold text-ink hover:underline",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -32,5 +38,5 @@ export function buttonClasses({
     size = "md",
     className = "",
 }: ButtonStyleOptions = {}): string {
-    return `inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm text-sm whitespace-nowrap transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:pointer-events-none disabled:opacity-60 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+    return `inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm text-sm whitespace-nowrap select-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:pointer-events-none disabled:opacity-60 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 }

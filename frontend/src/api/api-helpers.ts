@@ -22,6 +22,14 @@ export function toApiError(cause: unknown): ApiError {
             : undefined;
 
         if (problem) {
+             // The admin-only endpoints answer a missing role with a bare 403.
+            if (status === 403) {
+                return new ApiError(status, {
+                    code: "Auth.Forbidden",
+                    title: "You don't have access to do this.",
+                });
+            }
+
             return new ApiError(status, problem);
         }
 
@@ -91,4 +99,11 @@ export const escapeErrorFields: Record<string, string> = {
     "Escapes.CustomerInactive": "customercode",
     "Escapes.ErrorCodeNotFound": "errorcode",
     "Escapes.ErrorCodeInactive": "errorcode",
+};
+
+/** Create errors for stations, error codes and customers that belong under a form field. */
+export const lookupErrorFields: Record<string, string> = {
+    "Stations.CodeAlreadyExists": "code",
+    "ErrorCodes.CodeAlreadyExists": "code",
+    "Customers.CodeAlreadyExists": "code",
 };

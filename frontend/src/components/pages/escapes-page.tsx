@@ -8,7 +8,7 @@ import Icon from "@/components/common/icon";
 import SeverityMark from "@/components/common/severity-mark";
 import { Button } from "@/components/controls/button";
 import { buttonClasses } from "@/utils/button-helpers";
-import CustomerCombobox from "@/components/customers/customer-combobox";
+import CustomerCombobox from "@/components/lookups/customer-combobox";
 import FaultFilters from "@/components/faults/fault-filters";
 import DataGrid, { type DataGridColumn } from "@/components/grid/data-grid";
 import Pagination from "@/components/grid/pagination";

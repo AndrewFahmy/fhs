@@ -117,7 +117,7 @@ export function MenuButton({
             type="button"
             role="menuitem"
             onClick={onClick}
-            className={`block w-full cursor-pointer rounded-[3px] px-3 py-2 text-left text-sm ${active ? "bg-surface-head font-bold text-ink" : "text-ink hover:bg-surface-head"}`}
+            className={`block w-full cursor-pointer rounded-[3px] px-3 py-2 text-left text-sm select-none ${active ? "bg-surface-head font-bold text-ink" : "text-ink hover:bg-surface-head"}`}
         >
             {children}
         </button>

@@ -2,14 +2,9 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/controls/button";
 import RadioGroup from "@/components/controls/radio-group";
 import Select from "@/components/controls/select";
-import ErrorCodeCombobox from "@/components/errorCodes/error-code-combobox";
+import ErrorCodeCombobox from "@/components/lookups/error-code-combobox";
 import type { FaultFilterState } from "@/utils/use-fault-filters";
-
-const severityOptions = [
-    { value: "Minor", label: "Minor" },
-    { value: "Major", label: "Major" },
-    { value: "Critical", label: "Critical" },
-];
+import { severityOptions } from "@/api/enums";
 
 const statusOptions = [
     { value: "open", label: "Open" },
@@ -55,9 +50,9 @@ function FaultFilters({ filters, children }: FaultFiltersProps) {
             />
 
             <Button
-                variant="ghost"
+                variant="link"
                 size="sm"
-                className="ml-auto font-bold hover:underline"
+                className="ml-auto"
                 disabled={!filters.filtered}
                 onClick={filters.clear}
             >

@@ -2,85 +2,86 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { endpoints, settings } from "@/api/api-constants";
 import { usePost } from "@/api/api-hooks";
-import type { Severity } from "@/api/enums";
-import { fieldErrorsOf, escapeErrorFields } from "@/api/api-helpers";
-import type { CreateEscapeRequest, CreateEscapeResponse } from "@/api/types";
+import { fieldErrorsOf, defectErrorFields } from "@/api/api-helpers";
+import type { CreateDefectRequest, CreateDefectResponse } from "@/api/types";
 import ErrorState from "@/components/common/error-state";
-import SeverityMark from "@/components/common/severity-mark";
 import { Button } from "@/components/controls/button";
+import StationCombobox from "@/components/lookups/station-combobox";
+import ErrorCodeCombobox from "@/components/lookups/error-code-combobox";
 import Textarea from "@/components/controls/textarea";
-import CustomerCombobox from "@/components/customers/customer-combobox";
-import ErrorCodeCombobox from "@/components/errorCodes/error-code-combobox";
+import SeverityMark from "@/components/common/severity-mark";
+import { defectPath, paths } from "@/routes/navigation";
+import type { Severity } from "@/api/enums";
 import BackLink from "@/components/navigation/back-link";
-import { escapePath, paths } from "@/routes/navigation";
+import { buttonClasses } from "@/utils/button-helpers";
 
-const recordNotes = [
+const nextSteps = [
     {
-        title: "Customer context stays explicit",
-        detail: "This record is about what reached the customer.",
+        title: "The fault is classified",
+        detail: "Severity is set from the selected code.",
     },
     {
-        title: "No inferred production origin",
-        detail: "It never claims a station or internal defect link.",
+        title: "The open fault enters the queue",
+        detail: "It is visible to the next responsible operator.",
     },
 ];
 
-function NewEscapePage() {
+function NewDefectPage() {
     const navigate = useNavigate();
 
-    const [customerCode, setCustomerCode] = useState("");
+    const [stationCode, setStationCode] = useState("");
     const [errorCode, setErrorCode] = useState("");
     const [description, setDescription] = useState("");
     const [severity, setSeverity] = useState<Severity>();
 
     const { post, loading, error } = usePost<
-        CreateEscapeResponse,
-        CreateEscapeRequest
-    >(endpoints.createEscape);
+        CreateDefectResponse,
+        CreateDefectRequest
+    >(endpoints.createDefect);
 
-    const messages = fieldErrorsOf(error, escapeErrorFields);
+    const messages = fieldErrorsOf(error, defectErrorFields);
 
     const complete =
-        customerCode !== "" && errorCode !== "" && description.trim() !== "";
+        stationCode !== "" && errorCode !== "" && description.trim() !== "";
 
     async function submit() {
-        const response = await post({ customerCode, errorCode, description });
+        const response = await post({ stationCode, errorCode, description });
 
         if (response) {
-            void navigate(escapePath(response.data.escapeId), {
+            void navigate(defectPath(response.data.defectId), {
                 replace: true,
             });
         }
     }
 
     if (error?.status === 403) {
-        return <ErrorState error={error} title="You cannot report escapes." />;
+        return <ErrorState error={error} title="You cannot raise defects." />;
     }
 
     return (
         <>
-            <BackLink to={paths.escapes}>Escapes</BackLink>
+            <BackLink to={paths.defects}>Defects</BackLink>
 
             <header className="mt-6">
                 <h1 className="font-display text-[38px] leading-tight font-bold text-ink">
-                    Report an escape
+                    Raise a defect
                 </h1>
                 <p className="mt-1 text-sm text-ink-muted">
-                    Capture the customer-reported fault and its classification.
+                    Record the fault at the point it was found.
                 </p>
             </header>
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
                 <div className="rounded-md border border-border-strong bg-surface px-8 py-7">
-                    <CustomerCombobox
+                    <StationCombobox
                         variant="field"
                         className="w-full"
                         required
-                        placeholder="Search customers"
+                        placeholder="Search stations"
                         disabled={loading}
-                        error={messages.customercode}
-                        value={customerCode}
-                        onChange={setCustomerCode}
+                        error={messages.stationcode}
+                        value={stationCode}
+                        onChange={setStationCode}
                     />
 
                     <div className="mt-7">
@@ -110,13 +111,13 @@ function NewEscapePage() {
 
                     <div className="mt-7">
                         <Textarea
-                            label="Customer report"
+                            label="Description"
                             required
                             rows={5}
                             maxLength={settings.descriptionMaxLength}
                             disabled={loading}
                             error={messages.description}
-                            placeholder="Describe what the customer found or reported."
+                            placeholder="Describe what was found and where."
                             value={description}
                             onChange={setDescription}
                         />
@@ -125,17 +126,25 @@ function NewEscapePage() {
 
                 <aside className="h-fit rounded-md border border-border-subtle bg-surface-subtle px-7 py-6">
                     <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
-                        Escape record
+                        What happens next
                     </p>
-                    <div className="mt-4 space-y-6 border-t border-border-subtle pt-5">
-                        {recordNotes.map((note) => (
-                            <div key={note.title}>
-                                <p className="text-sm font-bold text-ink">
-                                    {note.title}
-                                </p>
-                                <p className="mt-1 text-[13px] text-ink-muted">
-                                    {note.detail}
-                                </p>
+                    <div className="mt-4 border-t border-border-subtle pt-5">
+                        {nextSteps.map((step, index) => (
+                            <div
+                                key={step.title}
+                                className={`flex gap-4 ${index > 0 ? "mt-6" : ""}`}
+                            >
+                                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-action text-[10px] font-bold text-action-ink">
+                                    {index + 1}
+                                </span>
+                                <div>
+                                    <p className="text-sm font-bold text-ink">
+                                        {step.title}
+                                    </p>
+                                    <p className="mt-1 text-[13px] text-ink-muted">
+                                        {step.detail}
+                                    </p>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -144,8 +153,8 @@ function NewEscapePage() {
 
             <div className="mt-8 flex items-center justify-end gap-4 border-t border-border-strong pt-6">
                 <Link
-                    to={paths.escapes}
-                    className="text-sm font-bold text-ink hover:underline"
+                    to={paths.defects}
+                    className={buttonClasses({ variant: "link" })}
                 >
                     Cancel
                 </Link>
@@ -153,11 +162,11 @@ function NewEscapePage() {
                     disabled={loading || !complete}
                     onClick={() => void submit()}
                 >
-                    {loading ? "Reporting…" : "Report escape"}
+                    {loading ? "Raising…" : "Raise defect"}
                 </Button>
             </div>
         </>
     );
 }
 
-export default NewEscapePage;
+export default NewDefectPage;

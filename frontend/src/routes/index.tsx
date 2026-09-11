@@ -1,13 +1,16 @@
 import RootLayout from "@/components/layout/root-layout";
-import DashboardPage from "@/components/pages/dashboard";
-import DefectsPage from "@/components/pages/defectsPage";
-import DefectDetailPage from "@/components/pages/defectDetailPage";
+import DashboardPage from "@/components/pages/dashboard-page";
+import DefectsPage from "@/components/pages/defects-page";
+import DefectDetailsPage from "@/components/pages/defect-details-page";
 import { createBrowserRouter } from "react-router";
 import { paths } from "@/routes/navigation";
-import NewDefectPage from "@/components/pages/newDefectPage";
-import EscapesPage from "@/components/pages/escapesPage";
-import EscapeDetailPage from "@/components/pages/escapeDetailPage";
-import NewEscapePage from "@/components/pages/newEscapePage";
+import NewDefectPage from "@/components/pages/new-defect-page";
+import EscapesPage from "@/components/pages/escapes-page";
+import EscapeDetailsPage from "@/components/pages/escape-details-page";
+import NewEscapePage from "@/components/pages/new-escape-page";
+import StationsPage from "@/components/pages/stations-page";
+import ErrorCodesPage from "@/components/pages/error-codes-page";
+import CustomersPage from "@/components/pages/customers-page";
 
 export const router = createBrowserRouter([
     {
@@ -25,7 +28,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: paths.defectDetail,
-                element: <DefectDetailPage />,
+                element: <DefectDetailsPage />,
             },
             {
                 path: paths.newDefect,
@@ -37,11 +40,23 @@ export const router = createBrowserRouter([
             },
             {
                 path: paths.escapeDetail,
-                element: <EscapeDetailPage />,
+                element: <EscapeDetailsPage />,
             },
             {
                 path: paths.newEscape,
                 element: <NewEscapePage />,
+            },
+            {
+                path: paths.stations,
+                element: <StationsPage />,
+            },
+            {
+                path: paths.errorCodes,
+                element: <ErrorCodesPage />,
+            },
+            {
+                path: paths.customers,
+                element: <CustomersPage />,
             },
         ],
     },

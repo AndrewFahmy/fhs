@@ -78,7 +78,7 @@ function ResolveDialog({
             onClose={onClose}
             footer={
                 <>
-                    <Button variant="ghost" onClick={onClose}>
+                    <Button variant="link" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button

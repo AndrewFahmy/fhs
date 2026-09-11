@@ -100,6 +100,21 @@ function Combobox({
         setOpen(false);
     }
 
+    function openList() {
+        if (open) {
+            return;
+        }
+
+        setQuery("");
+        setHighlight(0);
+        setOpen(true);
+    }
+
+    function closeList() {
+        setOpen(false);
+        setQuery("");
+    }
+
     function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
         if (event.key === "ArrowDown") {
             event.preventDefault();
@@ -121,8 +136,7 @@ function Combobox({
         }
 
         if (event.key === "Escape") {
-            setOpen(false);
-            setQuery("");
+            closeList();
         }
     }
 
@@ -154,10 +168,18 @@ function Combobox({
                         setHighlight(0);
                         setOpen(true);
                     }}
-                    onFocus={() => {
-                        setQuery("");
-                        setHighlight(0);
-                        setOpen(true);
+                    onFocus={openList}
+                    onPointerDown={(event) => {
+                        // Not focused yet: the focus that follows opens the list.
+                        if (document.activeElement !== event.currentTarget) {
+                            return;
+                        }
+
+                        if (open) {
+                            closeList();
+                        } else {
+                            openList();
+                        }
                     }}
                     onKeyDown={onKeyDown}
                     className={`${styles.control} ${borderClass} w-full border bg-surface-input px-3 pr-9 text-sm text-ink placeholder:text-ink-muted focus-visible:border-border-focus focus-visible:outline-none disabled:opacity-60`}

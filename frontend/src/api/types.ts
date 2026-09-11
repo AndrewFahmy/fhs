@@ -148,3 +148,31 @@ export interface CreateEscapeRequest {
 export interface CreateEscapeResponse {
     escapeId: string;
 }
+
+export interface CreateStationRequest {
+    code: string;
+    name: string;
+}
+
+export interface CreateStationResponse {
+    stationId: string;
+}
+
+export interface CreateErrorCodeRequest {
+    code: string;
+    description: string;
+    severity: Severity;
+}
+
+export interface CreateErrorCodeResponse {
+    errorCodeId: string;
+}
+
+export interface CreateCustomerRequest {
+    code: string;
+    name: string;
+}
+
+export interface CreateCustomerResponse {
+    customerId: string;
+}
