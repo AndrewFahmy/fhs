@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios, { type AxiosResponse } from "axios";
-import { userManager } from "@/api/user-manager";
+import { userManager, signinState } from "@/utils/user-manager";
 import { type RetriedRequestConfig, ApiError } from "@/api/types";
 import { toApiError } from "@/api/api-helpers";
 import type { User } from "oidc-client-ts";
@@ -70,7 +70,7 @@ apiClient.interceptors.response.use(
             return apiClient.request(config);
         }
 
-        await userManager.signinRedirect();
+        await userManager.signinRedirect({ state: signinState() });
 
         return Promise.reject(toApiError(cause));
     },

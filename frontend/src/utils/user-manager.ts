@@ -23,15 +23,24 @@ export interface SigninState {
     returnTo: string;
 }
 
+/** Where to come back to after Keycloak: the page that needed the sign-in. */
+export function signinState(): SigninState {
+    return {
+        returnTo: `${window.location.pathname}${window.location.search}`,
+    };
+}
+
 export function returnToFrom(state: unknown): string {
-    return typeof state === "object" &&
+    const returnTo =
+        typeof state === "object" &&
         state !== null &&
         "returnTo" in state &&
         typeof state.returnTo === "string"
-        ? state.returnTo
-        : "/";
-}
+            ? state.returnTo
+            : "";
 
-export function onSigninCallback(): void {
-    window.history.replaceState({}, document.title, window.location.pathname);
+    // In-app paths only: "//host" would leave the site.
+    return returnTo.startsWith("/") && !returnTo.startsWith("//")
+        ? returnTo
+        : "/";
 }

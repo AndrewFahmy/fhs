@@ -3,10 +3,13 @@ import { RouterProvider } from "react-router";
 import { Notice } from "@/components/common/notice";
 import { Button } from "@/components/controls/button";
 import { router } from "@/routes";
+import { signinState } from "@/utils/user-manager";
 
 function App() {
     const auth = useAuth();
-    const { isAuthenticated, error } = useAutoSignin();
+    const { isAuthenticated, error } = useAutoSignin({
+        signinArgs: { state: signinState() },
+    });
 
     if (error) {
         return (
