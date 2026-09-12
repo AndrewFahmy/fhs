@@ -34,6 +34,7 @@ function ErrorCodesPage() {
             header: "Severity",
             width: "140px",
             loaderClassName: "w-24",
+            card: "badge",
             render: (errorCode) => (
                 <SeverityMark
                     severity={errorCode.severity}
@@ -47,6 +48,7 @@ function ErrorCodesPage() {
             width: "160px",
             className: "font-mono font-bold",
             loaderClassName: "w-20",
+            card: "code",
             render: (errorCode) => errorCode.code,
         },
         {
@@ -55,6 +57,7 @@ function ErrorCodesPage() {
             width: "minmax(0,1fr)",
             className: "truncate",
             loaderClassName: "w-48",
+            card: "primary",
             title: (errorCode) => errorCode.description,
             render: (errorCode) => errorCode.description,
         },
@@ -63,6 +66,7 @@ function ErrorCodesPage() {
             header: "Status",
             width: "160px",
             loaderClassName: "w-16",
+            card: "meta",
             render: (errorCode) =>
                 errorCode.isActive ? (
                     "Active"
@@ -79,6 +83,7 @@ function ErrorCodesPage() {
             width: "150px",
             className: "justify-self-end",
             loaderClassName: "w-24 justify-self-end",
+            card: "actions",
             render: (errorCode) =>
                 errorCode.isActive ? (
                     <Button

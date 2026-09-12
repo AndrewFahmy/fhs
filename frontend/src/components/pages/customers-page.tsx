@@ -36,6 +36,7 @@ function CustomersPage() {
             width: "160px",
             className: "font-mono font-bold",
             loaderClassName: "w-16",
+            card: "code",
             render: (customer) => customer.code,
         },
         {
@@ -44,6 +45,7 @@ function CustomersPage() {
             width: "minmax(0,1fr)",
             className: "truncate",
             loaderClassName: "w-48",
+            card: "primary",
             title: (customer) => customer.name,
             render: (customer) => customer.name,
         },
@@ -52,6 +54,7 @@ function CustomersPage() {
             header: "Status",
             width: "160px",
             loaderClassName: "w-16",
+            card: "meta",
             render: (customer) =>
                 customer.isActive ? (
                     "Active"
@@ -68,6 +71,7 @@ function CustomersPage() {
             width: "150px",
             className: "justify-self-end",
             loaderClassName: "w-24 justify-self-end",
+            card: "actions",
             render: (customer) =>
                 customer.isActive ? (
                     <Button

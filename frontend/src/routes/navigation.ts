@@ -15,7 +15,6 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 }
 
 export const paths = {
-    dashboard: "/",
     defects: "/defects",
     escapes: "/escapes",
     stations: "/stations",
@@ -52,3 +51,5 @@ export function escapePath(escapeId: string): string {
     return `/escapes/${escapeId}`;
 }
 
+/** Routes that pin their own action bar, where the tab bar stands down. */
+export const actionBarPaths: string[] = [paths.newDefect, paths.newEscape];

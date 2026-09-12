@@ -29,6 +29,7 @@ function DefectsPage() {
             header: "Severity",
             width: "140px",
             loaderClassName: "w-24",
+            card: "badge",
             render: (defect) => (
                 <SeverityMark
                     severity={defect.severity}
@@ -42,6 +43,7 @@ function DefectsPage() {
             width: "110px",
             className: "font-mono font-bold",
             loaderClassName: "w-14",
+            card: "code",
             render: (defect) => defect.stationCode,
         },
         {
@@ -50,6 +52,7 @@ function DefectsPage() {
             width: "140px",
             className: "font-mono font-bold",
             loaderClassName: "w-20",
+            card: "code",
             render: (defect) => defect.errorCode,
         },
         {
@@ -58,6 +61,7 @@ function DefectsPage() {
             width: "minmax(0,1fr)",
             className: "truncate",
             loaderClassName: "w-full",
+            card: "primary",
             title: (defect) => defect.description,
             render: (defect) => defect.description,
         },
@@ -67,6 +71,7 @@ function DefectsPage() {
             width: "170px",
             className: "truncate",
             loaderClassName: "w-24",
+            card: "meta",
             render: (defect) => defect.raisedBy,
         },
         {
@@ -74,6 +79,7 @@ function DefectsPage() {
             header: "Raised",
             width: "110px",
             loaderClassName: "w-10",
+            card: "meta",
             title: (defect) => fullTimestamp(defect.createdAt),
             render: (defect) => formatTimestamp(defect.createdAt),
         },
@@ -85,6 +91,8 @@ function DefectsPage() {
             header: "Resolved",
             width: "110px",
             loaderClassName: "w-10",
+            card: "meta",
+            cardLabel: "Resolved",
             title: (defect) =>
                 defect.resolvedAt ? fullTimestamp(defect.resolvedAt) : "",
             render: (defect) =>
@@ -132,6 +140,7 @@ function DefectsPage() {
 
             <FaultFilters filters={filters}>
                 <StationCombobox
+                    className="w-full md:w-56"
                     placeholder="All stations"
                     clearLabel="All stations"
                     value={filters.get("stationCode")}

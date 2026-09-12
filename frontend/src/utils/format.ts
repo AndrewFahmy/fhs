@@ -37,3 +37,8 @@ export function formatWhen(value: string): string {
         ? `on ${formatted.replace(" ", " at ")}`
         : `today at ${formatted}`;
 }
+
+/** Grouped thousands, so a six-figure total stays readable: 1,204,553. */
+export function formatCount(value: number): string {
+    return value.toLocaleString();
+}

@@ -29,6 +29,7 @@ function EscapesPage() {
             header: "Severity",
             width: "140px",
             loaderClassName: "w-24",
+            card: "badge",
             render: (escape) => (
                 <SeverityMark
                     severity={escape.severity}
@@ -42,6 +43,7 @@ function EscapesPage() {
             width: "140px",
             className: "font-mono font-bold",
             loaderClassName: "w-14",
+            card: "code",
             render: (escape) => escape.customerCode,
         },
         {
@@ -50,6 +52,7 @@ function EscapesPage() {
             width: "140px",
             className: "font-mono font-bold",
             loaderClassName: "w-20",
+            card: "code",
             render: (escape) => escape.errorCode,
         },
         {
@@ -58,6 +61,7 @@ function EscapesPage() {
             width: "minmax(0,1fr)",
             className: "truncate",
             loaderClassName: "w-full",
+            card: "primary",
             title: (escape) => escape.description,
             render: (escape) => escape.description,
         },
@@ -67,6 +71,7 @@ function EscapesPage() {
             width: "170px",
             className: "truncate",
             loaderClassName: "w-24",
+            card: "meta",
             render: (escape) => escape.reportedBy,
         },
         {
@@ -74,6 +79,7 @@ function EscapesPage() {
             header: "Reported",
             width: "110px",
             loaderClassName: "w-10",
+            card: "meta",
             title: (escape) => fullTimestamp(escape.reportedAt),
             render: (escape) => formatTimestamp(escape.reportedAt),
         },
@@ -85,6 +91,8 @@ function EscapesPage() {
             header: "Resolved",
             width: "110px",
             loaderClassName: "w-10",
+            card: "meta",
+            cardLabel: "Resolved",
             title: (escape) =>
                 escape.resolvedAt ? fullTimestamp(escape.resolvedAt) : "",
             render: (escape) =>
@@ -132,6 +140,7 @@ function EscapesPage() {
 
             <FaultFilters filters={filters}>
                 <CustomerCombobox
+                    className="w-full md:w-56"
                     placeholder="All customers"
                     clearLabel="All customers"
                     value={filters.get("customerCode")}

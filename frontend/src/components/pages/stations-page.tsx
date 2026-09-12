@@ -33,6 +33,7 @@ function StationsPage() {
             width: "160px",
             className: "font-mono font-bold",
             loaderClassName: "w-16",
+            card: "code",
             render: (station) => station.code,
         },
         {
@@ -41,6 +42,7 @@ function StationsPage() {
             width: "minmax(0,1fr)",
             className: "truncate",
             loaderClassName: "w-48",
+            card: "primary",
             title: (station) => station.name,
             render: (station) => station.name,
         },
@@ -49,6 +51,7 @@ function StationsPage() {
             header: "Status",
             width: "160px",
             loaderClassName: "w-16",
+            card: "meta",
             render: (station) =>
                 station.isActive ? (
                     "Active"
@@ -65,6 +68,7 @@ function StationsPage() {
             width: "150px",
             className: "justify-self-end",
             loaderClassName: "w-24 justify-self-end",
+            card: "actions",
             render: (station) =>
                 station.isActive ? (
                     <Button

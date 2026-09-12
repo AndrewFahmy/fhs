@@ -14,6 +14,7 @@ import ErrorCodeCombobox from "@/components/lookups/error-code-combobox";
 import BackLink from "@/components/navigation/back-link";
 import { escapePath, paths } from "@/routes/navigation";
 import { buttonClasses } from "@/utils/button-helpers";
+import FormActions from "@/components/controls/form-actions";
 
 const recordNotes = [
     {
@@ -143,9 +144,9 @@ function NewEscapePage() {
                 </aside>
             </div>
 
-            <div className="mt-8 flex items-center justify-end gap-4 border-t border-border-strong pt-6">
+            <FormActions>
                 <Link
-                    to={paths.defects}
+                    to={paths.escapes}
                     className={buttonClasses({ variant: "link" })}
                 >
                     Cancel
@@ -156,7 +157,7 @@ function NewEscapePage() {
                 >
                     {loading ? "Reporting…" : "Report escape"}
                 </Button>
-            </div>
+            </FormActions>
         </>
     );
 }

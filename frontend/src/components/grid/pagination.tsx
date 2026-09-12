@@ -1,4 +1,5 @@
 import { Button } from "@/components/controls/button";
+import { formatCount } from "@/utils/format";
 
 export interface PaginationProps {
     page: number;
@@ -19,9 +20,9 @@ function Pagination({
     const last = Math.min(page * pageSize, totalCount);
 
     return (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-6 py-4 text-sm text-ink-muted">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-0 py-4 text-sm text-ink-muted md:px-6">
             <span>
-                {first} - {last} of {totalCount}
+                {`${formatCount(first)} - ${formatCount(last)} of ${formatCount(totalCount)}`}
             </span>
             <div className="flex items-center gap-3">
                 <Button
@@ -33,7 +34,7 @@ function Pagination({
                     Prev
                 </Button>
                 <span className="text-ink">
-                    {page} / {Math.max(totalPages, 1)}
+                    {`${formatCount(page)} / ${formatCount(Math.max(totalPages, 1))}`}
                 </span>
                 <Button
                     variant="secondary"

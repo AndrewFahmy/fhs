@@ -70,6 +70,8 @@ export function useFaultFilters(sourceKey: "stationCode" | "customerCode") {
         status,
         page: pageOf(search),
         filtered: status !== "open" || keys.some((key) => search.has(key)),
+        /** Filters other than status that are currently applied. */
+        activeCount: keys.filter((key) => search.has(key)).length,
         get: (key: string) => search.get(key) ?? "",
         set,
         setPage,

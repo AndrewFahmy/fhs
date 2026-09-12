@@ -14,6 +14,7 @@ import { defectPath, paths } from "@/routes/navigation";
 import type { Severity } from "@/api/enums";
 import BackLink from "@/components/navigation/back-link";
 import { buttonClasses } from "@/utils/button-helpers";
+import FormActions from "@/components/controls/form-actions";
 
 const nextSteps = [
     {
@@ -151,7 +152,7 @@ function NewDefectPage() {
                 </aside>
             </div>
 
-            <div className="mt-8 flex items-center justify-end gap-4 border-t border-border-strong pt-6">
+            <FormActions>
                 <Link
                     to={paths.defects}
                     className={buttonClasses({ variant: "link" })}
@@ -164,7 +165,7 @@ function NewDefectPage() {
                 >
                     {loading ? "Raising…" : "Raise defect"}
                 </Button>
-            </div>
+            </FormActions>
         </>
     );
 }

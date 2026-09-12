@@ -18,7 +18,6 @@ export const router = createBrowserRouter([
         element: <RootLayout />,
         children: [
             {
-                path: paths.dashboard,
                 element: <DashboardPage />,
                 index: true,
             },

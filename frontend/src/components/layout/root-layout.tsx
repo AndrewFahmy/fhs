@@ -6,16 +6,11 @@ import {
     type NavLinkRenderProps,
 } from "react-router";
 import type { Location } from "react-router";
-import {
-    isNavGroup,
-    paths,
-    navigation,
-    type NavEntry,
-    flatNavigation,
-} from "@/routes/navigation";
+import { isNavGroup, navigation, type NavEntry } from "@/routes/navigation";
 import type { ReactNode } from "react";
 import ThemeToggle from "@/components/controls/theme-toggle";
 import { Menu, MenuButton, MenuItem } from "@/components/navigation/menu";
+import BottomTabs from "@/components/navigation/bottom-tabs";
 import Icon from "@/components/common/icon";
 
 function navClass({ isActive }: NavLinkRenderProps) {
@@ -82,10 +77,7 @@ function RootLayout() {
         <div className="flex min-h-screen flex-col bg-canvas md:p-10">
             <div className="flex flex-1 flex-col border-border-strong bg-surface md:rounded-lg md:border">
                 <header className="flex h-18 shrink-0 items-center gap-10 border-b border-border-strong px-6 md:px-7">
-                    <NavLink
-                        to={paths.dashboard}
-                        className="flex items-center gap-3"
-                    >
+                    <NavLink to="/" className="flex items-center gap-3">
                         <span className="flex size-7 items-center justify-center rounded-[3px] bg-action text-action-ink">
                             <Icon name="logo" className="size-7" />
                         </span>
@@ -101,24 +93,6 @@ function RootLayout() {
 
                     <div className="ml-auto flex items-center gap-4">
                         <ThemeToggle />
-
-                        <Menu
-                            align="end"
-                            chevron={false}
-                            triggerClassName="text-ink md:hidden"
-                            label={
-                                <>
-                                    <Icon name="menu" className="size-6" />
-                                    <span className="sr-only">Menu</span>
-                                </>
-                            }
-                        >
-                            {flatNavigation.map((item) => (
-                                <MenuItem key={item.to} to={item.to}>
-                                    {item.label}
-                                </MenuItem>
-                            ))}
-                        </Menu>
 
                         <Menu
                             align="end"
@@ -146,10 +120,12 @@ function RootLayout() {
                     </div>
                 </header>
 
-                <main className="flex-1 px-6 py-8 md:px-10 md:py-9">
+                <main className="flex-1 px-6 pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-10 md:py-9">
                     <Outlet />
                 </main>
             </div>
+
+            <BottomTabs />
         </div>
     );
 }

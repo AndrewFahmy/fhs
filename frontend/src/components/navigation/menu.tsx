@@ -7,7 +7,9 @@ import type { ButtonSize, ButtonVariant } from "@/utils/button-helpers";
 export interface MenuProps {
     label: ReactNode;
     align?: "start" | "end";
+    placement?: "bottom" | "top";
     chevron?: boolean;
+    className?: string;
     triggerClassName?: string;
     children: ReactNode;
     triggerVariant?: ButtonVariant;
@@ -17,7 +19,9 @@ export interface MenuProps {
 export function Menu({
     label,
     align = "start",
+    placement = "bottom",
     chevron = true,
+    className = "",
     triggerClassName = "",
     children,
     triggerVariant = "ghost",
@@ -51,7 +55,7 @@ export function Menu({
     }, [open]);
 
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className={`relative ${className}`}>
             <Button
                 variant={triggerVariant}
                 size={triggerSize}
@@ -70,7 +74,11 @@ export function Menu({
                 <div
                     role="menu"
                     onClick={() => setOpen(false)}
-                    className={`absolute top-full z-10 mt-3 min-w-42 rounded-[5px] border border-border-control bg-surface p-2 shadow-lg ${align === "end" ? "right-0" : "left-0"}`}
+                    className={`absolute z-10 min-w-42 rounded-[5px] border border-border-control bg-surface p-2 shadow-lg ${
+                        placement === "top"
+                            ? "bottom-full mb-3"
+                            : "top-full mt-3"
+                    } ${align === "end" ? "right-0" : "left-0"}`}
                 >
                     {children}
                 </div>

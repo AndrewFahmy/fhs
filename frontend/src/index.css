@@ -5,35 +5,36 @@
     --font-display: Georgia, "Times New Roman", serif;
     --font-mono   : ui-monospace, "Cascadia Mono", Consolas, monospace;
 
-    /* Surfaces */
-    --color-canvas        : light-dark(#e7e9e5, #121412);
-    --color-surface       : light-dark(#fbfcf9, #1b1e1a);
-    --color-surface-subtle: light-dark(#f1f3ef, #242924);
-    --color-surface-head  : light-dark(#edefea, #292e29);
-    --color-surface-input : light-dark(#fbfcf9, #171a17);
+    /* Surfaces — dark ramp lifted off the floor: L* 12.9 / 18.8 / 23 / 26 */
+    --color-canvas        : light-dark(#e7e9e5, #1e221e);
+    --color-surface       : light-dark(#fbfcf9, #2a2f2a);
+    --color-surface-subtle: light-dark(#f1f3ef, #343a34);
+    --color-surface-head  : light-dark(#edefea, #3d443d);
+    --color-surface-input : light-dark(#fbfcf9, #191d19);
 
     /* Text */
-    --color-ink      : light-dark(#171917, #f3f5f0);
-    --color-ink-muted: light-dark(#6a706a, #b8beb6);
-    --color-ink-head : light-dark(#4a504a, #c7ccc5);
+    --color-ink      : light-dark(#171917, #eff2ed);
+    --color-ink-muted: light-dark(#6a706a, #aeb6ac);
+    --color-ink-head : light-dark(#4a504a, #c9d0c7);
 
-    /* Borders */
-    --color-border-strong : light-dark(#c8ccc6, #484d46);
-    --color-border-subtle : light-dark(#d8dbd6, #3d443c);
-    --color-border-control: light-dark(#b8bdb6, #596058);
-    --color-border-focus  : light-dark(#737a73, #899287);
+    /* Borders — the hairline carries the structure in dark, so it doubles in weight */
+    --color-border-strong : light-dark(#c8ccc6, #656e65);
+    --color-border-subtle : light-dark(#d8dbd6, #545c54);
+    --color-border-control: light-dark(#b8bdb6, #788177);
+    --color-border-focus  : light-dark(#737a73, #99a399);
 
     /* Primary action — ink block, surface label; inverts in dark */
-    --color-action    : light-dark(#171917, #f3f5f0);
-    --color-action-ink: light-dark(#fbfcf9, #171917);
+    --color-action    : light-dark(#171917, #eff2ed);
+    --color-action-ink: light-dark(#fbfcf9, #1e221e);
 
     /* Severity — the only semantic color in the product */
-    --color-severity-critical        : light-dark(#b22b22, #ee6c61);
-    --color-severity-critical-surface: light-dark(#f8e2e0, #43221f);
-    --color-severity-critical-ink    : light-dark(#7b1d18, #ffd7d3);
-    --color-severity-major           : light-dark(#b87510, #f1b64e);
-    --color-severity-minor           : light-dark(#697069, #cad0c7);
+    --color-severity-critical        : light-dark(#b22b22, #f0776c);
+    --color-severity-critical-surface: light-dark(#f8e2e0, #4a2825);
+    --color-severity-critical-ink    : light-dark(#7b1d18, #ffdad6);
+    --color-severity-major           : light-dark(#b87510, #f0b94f);
+    --color-severity-minor           : light-dark(#697069, #c3cbc1);
 }
+
 
 @layer base {
     :root {
