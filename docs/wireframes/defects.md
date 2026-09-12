@@ -1,11 +1,11 @@
 # Wireframes — Defects
 
-> **Status: proposal, not a confirmed design record.** Read `README.md` in this folder first; the notation,
-> the severity and status treatments, the error contract and the five required states are defined there and
-> are not repeated here.
+> **Status: as-built, confirmed 2026-09-12.** Read `README.md` in this folder first; the notation, the
+> severity and status treatments, the theme tokens, the mobile rules, the error contract and the five
+> required states are defined there and are not repeated here.
 
-Four screens, backed by exactly four endpoints. This is the reference set — `escapes.md` and
-`reference-data.md` should follow its structure.
+Four screens, backed by exactly four endpoints. This is the pattern the other screens follow; `escapes.md`
+and `lookups.md` were planned as companions and overtaken by the build (README §9).
 
 | Screen | Route | Endpoint |
 | --- | --- | --- |

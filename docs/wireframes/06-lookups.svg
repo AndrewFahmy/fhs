@@ -3,7 +3,7 @@
   <rect x="46" y="38" width="1408" height="864" rx="8" fill="#FBFCF9" stroke="#C8CCC6"/>
   <rect x="46" y="38" width="1408" height="72" rx="8" fill="#FBFCF9"/><path d="M46 110H1454" stroke="#C8CCC6"/>
   <rect x="74" y="61" width="27" height="27" rx="3" fill="#171917"/><path d="M81 69H94M81 75H91M81 81H88" stroke="#FBFCF9" stroke-width="2" stroke-linecap="round"/>
-  <text x="114" y="81" fill="#171917" font-family="Georgia, serif" font-size="22" font-weight="700">FHS</text><text x="201" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">DEFECTS</text><text x="300" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">ESCAPES</text><text x="393" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">REFERENCE</text><path d="M480 73L485 78L490 73" stroke="#171917" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="114" y="81" fill="#171917" font-family="Georgia, serif" font-size="22" font-weight="700">FHS</text><text x="201" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">DEFECTS</text><text x="300" y="80" fill="#6A706A" font-family="Arial, sans-serif" font-size="14">ESCAPES</text><text x="393" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">LOOKUPS</text><path d="M480 73L485 78L490 73" stroke="#171917" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="1251" cy="76" r="15" fill="#D9DDD6"/><text x="1245" y="81" fill="#171917" font-family="Arial, sans-serif" font-size="10" font-weight="700">AF</text><text x="1310" y="80" fill="#171917" font-family="Arial, sans-serif" font-size="14">Andrew Fahmy</text>
 
   <rect x="380" y="98" width="170" height="145" rx="5" fill="#FBFCF9" stroke="#B8BDB6" filter="url(#shadow)"/>
@@ -34,7 +34,7 @@
     <rect x="108" y="716" width="12" height="12" rx="1" fill="#FBFCF9" stroke="#697069" stroke-width="1.5"/><text x="130" y="727" fill="#171917" font-size="12" font-weight="700">MINOR</text><text x="252" y="727" fill="#171917" font-family="monospace" font-size="14" font-weight="700">EC-0210</text><text x="420" y="727" fill="#171917" font-size="14">Surface scratch</text><text x="1159" y="727" fill="#171917" font-size="14">Active</text><circle cx="1375" cy="722" r="2" fill="#171917"/><circle cx="1383" cy="722" r="2" fill="#171917"/><circle cx="1391" cy="722" r="2" fill="#171917"/>
   </g>
   <rect x="1267" y="386" width="130" height="46" rx="4" fill="#FBFCF9" stroke="#B8BDB6" filter="url(#shadow)"/><text x="1283" y="415" fill="#171917" font-family="Arial, sans-serif" font-size="14">Retire code</text>
-  <text x="84" y="807" fill="#6A706A" font-family="Arial, sans-serif" font-size="13">Stations and Customers use this same reference-data pattern: code, name, active state, one lifecycle action.</text>
+  <text x="84" y="807" fill="#6A706A" font-family="Arial, sans-serif" font-size="13">Stations and Customers use this same lookup pattern: code, name, active state, one lifecycle action.</text>
   <rect x="380" y="98" width="170" height="145" rx="5" fill="#FBFCF9" stroke="#B8BDB6" filter="url(#shadow)"/>
   <text x="402" y="132" fill="#171917" font-family="Arial, sans-serif" font-size="14">Stations</text>
   <rect x="389" y="146" width="152" height="36" rx="3" fill="#EDEFEA"/><text x="402" y="169" fill="#171917" font-family="Arial, sans-serif" font-size="14" font-weight="700">Error codes</text>

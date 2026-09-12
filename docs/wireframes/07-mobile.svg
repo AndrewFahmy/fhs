@@ -37,7 +37,7 @@
   <text x="387" y="721" fill="#171917" font-family="monospace" font-size="13" font-weight="700">ST-11 / EC-0075</text><text x="387" y="745" fill="#171917" font-family="Arial, sans-serif" font-size="13">Label misaligned on finished carton</text><text x="387" y="761" fill="#6A706A" font-family="Arial, sans-serif" font-size="11">M. Haddad   08:58</text>
   <rect x="371" y="795" width="300" height="49" rx="0" fill="#FBFCF9"/>
   <path d="M371 795H671" stroke="#D7DAD5"/>
-  <text x="397" y="825" fill="#171917" font-family="Arial, sans-serif" font-size="11" font-weight="700">DEFECTS</text><text x="492" y="825" fill="#6A706A" font-family="Arial, sans-serif" font-size="11">ESCAPES</text><text x="589" y="825" fill="#6A706A" font-family="Arial, sans-serif" font-size="11">MORE</text>
+  <text x="397" y="825" fill="#171917" font-family="Arial, sans-serif" font-size="11" font-weight="700">DEFECTS</text><text x="492" y="825" fill="#6A706A" font-family="Arial, sans-serif" font-size="11">ESCAPES</text><text x="589" y="825" fill="#6A706A" font-family="Arial, sans-serif" font-size="11">LOOKUPS</text>
 
   <rect x="841" y="194" width="360" height="683" rx="29" fill="#171917"/>
   <rect x="852" y="207" width="338" height="657" rx="22" fill="#FBFCF9"/>

@@ -59,7 +59,7 @@ infra/FHS.AppHost           Aspire orchestration (Aspire 13.5.x)
 infra/FHS.ServiceDefaults   telemetry, health checks, resilience defaults
 backend/FHS.Api             vertical slices + shared links + capabilities
 backend/FHS.Chain           the composition kernel (no application dependencies, ~275 LOC)
-frontend/                   SPA (technology not yet chosen — empty)
+frontend/                   React 19 + TypeScript SPA on Vite (screens: docs/wireframes/README.md)
 ```
 
 ### Decided
@@ -67,12 +67,15 @@ frontend/                   SPA (technology not yet chosen — empty)
 - .NET 10 (SDK 10.0.400), Aspire for orchestration, PostgreSQL for persistence.
 - Vertical Slice Architecture, with **Chain Composition** (this document) as the convention inside a slice.
 - Minimal APIs. No MediatR — see §3.
+- **Frontend: React 19 and TypeScript on Vite**, settled 2026-09-12 when the SPA shipped. react-router v8 in
+  data mode, axios behind hand-written verb hooks, `react-oidc-context` over Keycloak, Tailwind v4 with
+  `light-dark()` tokens, Bun as the package manager. No component kit and no codegen: the earlier
+  recommendation of shadcn/ui was not taken, and a generated API client was rejected because the generated
+  files conflict in git. Screen-level decisions live in `docs/wireframes/README.md`. This document stays
+  backend-only and does not depend on any of it.
 
 ### Still open
 
-- **Frontend technology and framework — not chosen.** A prior note recommending React + Vite + TypeScript +
-  Tailwind + shadcn/ui is **stale and non-binding**; the decision is being revisited. This document is
-  backend-only and does not depend on the outcome.
 - Local Kubernetes hosting approach. Currently Aspire on Docker Desktop; decide when it is actually reached.
 
 ### Working agreement
@@ -1359,8 +1362,10 @@ wrong. They are in the kernel as built; see §7 for what they cost and what they
   intermediate hand-off fields, where `CS8602` is the guard.
 - **A `feature-slice` scaffold** that generates the folder, State, chain declaration and endpoint, so the
   ceremony floor is paid by a generator rather than by hand.
-- **Frontend architecture**, once the technology is chosen. If the SPA mirrors the vertical slices, both
-  sides share one mental model — but that is a separate document and a separate decision.
+- **Frontend architecture as a written convention.** The technology is settled and the SPA is built (§1),
+  but it is organised by component kind — `api/`, `utils/`, `routes/`, `components/{controls,pages,…}` — not
+  by vertical slice, so the two sides do not currently share one mental model. Whether they should is still
+  open, and it is a separate document either way.
 - **Parallel links.** Deliberately excluded: it breaks the linear-reading property that is the entire
   point. Revisit only with a measured performance reason.
 
