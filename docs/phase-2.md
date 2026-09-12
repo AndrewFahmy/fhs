@@ -64,6 +64,8 @@ document came from analysis and is only as good as the reasoning attached to it.
 | **A `GET /me` endpoint, called after login** | 2026-09-12 | The caller's facility lives on `Actor`, not in the token, so the SPA has no other way to know it. For **display only** — the write path never trusts a client-supplied facility (§10.6) |
 | **System admins get a facility control on the create pages** | 2026-09-12 | For defects it is a station-list filter and the request gains no field at all; for escapes it is an optional facility code, admin-only. §10.5 |
 | **The migration history is deleted and regenerated as one initial migration** | 2026-09-12 | Still pre-release, nothing depends on the history, and a required FK on populated tables is the awkward incremental case. Collapses several planned steps into one — with two scars to respect (§4.7) |
+| **Only the system admin is a hard-coded identity** | 2026-09-12 | Enterprise systems ship a bootstrap admin and nothing else; every other user is data. The operator identity leaves `DataConstants` and `ActorConfiguration.HasData` — integration tests own their fixtures, the generator owns the demo accounts (§10.2) |
+| **`Actor.FacilityId` is nullable, and null means unscoped** | 2026-09-12 | Falls out of the row above: a system admin has no facility, so a required FK would force facility rows into `HasData`. Null is usable only by `system-admin` — the scope check fails closed otherwise (§10.2) |
 
 ### Proposed — recommended here, not yet agreed
 
@@ -271,11 +273,11 @@ page 1 stabilises within seconds while older rows fill in behind it. Same data, 
 difference between a demo that looks alive and one that looks unstable.
 
 *Actors are a prerequisite nobody expects.* `Defect.CreatedBy` and `Escape.ReportedBy` are foreign keys to
-`Actor`, and `COPY` enforces foreign keys — nothing is skipped. In v1 an actor only ever comes into
-existence through `ResolveActor` mapping a Keycloak subject, so the generator has to write synthetic actor
-rows itself, with `SubjectId` values that cannot collide with a real Keycloak subject. Once workstream F
-lands those actors also carry facility assignments (§10.2), and the seed should include both a system admin
-and at least two facility admins — otherwise the role distinction cannot be demonstrated on a fresh clone.
+`Actor`, and `COPY` enforces foreign keys — nothing is skipped. An actor only ever comes into existence
+through `ResolveActor` mapping a Keycloak subject, and only the bootstrap system admin is seeded by the
+migration (§10.2), so **the generator writes every other actor row** — the 3N realm users with their
+facility assignments, plus whatever synthetic actors the fault volume needs, on `SubjectId` values that
+cannot collide with a real Keycloak subject.
 
 The same applies to every other FK: generate the reference-data GUIDs client-side, insert them, keep the
 arrays in memory and sample from them, so nothing needs reading back.
@@ -776,6 +778,28 @@ somewhere.
 A single `FacilityId` on `Actor` is the right starting point. A join table is the escape hatch if someone
 turns out to administer two facilities, and nothing here forecloses it.
 
+**It is nullable, and null means unscoped.** A system admin has no facility by definition, so a required
+foreign key would force at least one facility row into `HasData` purely to satisfy the bootstrap actor.
+Nullable removes that, and the generator ends up owning every facility.
+
+Null must be *usable* only by `system-admin`, though. A non-admin actor with no facility would otherwise
+see everything, turning a bad row into privilege escalation — so **the scope check fails closed**: no
+facility and no `system-admin` role denies access rather than granting all of it.
+
+**Only the system admin is a hard-coded identity.** Decided 2026-09-12. Real systems ship a bootstrap admin
+account and treat every other user as data, and v1 does not — `DataConstants` carries a line-operator
+subject and actor id, and `ActorConfiguration.HasData` seeds both. The operator half goes:
+
+| Identity | Lives in | Why |
+| --- | --- | --- |
+| **System admin** | `DataConstants` + `ActorConfiguration.HasData` | The bootstrap account. `HasData` needs a deterministic key, so both the subject id and the actor id stay constants. It is what makes an empty database administrable |
+| Operator, facility admin — **tests** | `Fhs.IntegrationTests` | The suite currently depends on production seed data, so an unrelated change to the API's seed breaks tests. `FhsApiFactory` seeds its own actors when the container starts. This is a latent coupling being fixed, not a new cost |
+| Operator, facility admin — **demo** | The generator | It is the demo-data authority, and the subject ids belong beside the realm file they must mirror (§10.9) |
+
+The change is contained: thirteen lines reference these constants — two helpers in `FactoryExtensions` and
+eleven event-payload assertions. The roughly fifty `CreateLineOperatorClient()` call sites go through those
+helpers and do not change at all.
+
 ### 10.3 Not all three lookups should be scoped alike
 
 The request treats stations, error codes and customers as one group. They are not, and this is the
@@ -940,10 +964,20 @@ Keycloak-generated ones. Extend it — one `system-admin`, and per facility one 
 operator or two, each with a readable fixed GUID — and have the generator seed `Actor` rows with exactly
 those `SubjectId` values and the matching `FacilityId`.
 
-**The generator (§4.3).** It seeds facilities, stations bound to them, and the actors above. That is what
-makes every environment start from the same reference data, and what lets a demo switch between a facility
-admin and a system admin without anyone configuring anything. It is the developer's stated reason for
-moving lookups into the generator and it is a good one.
+**The generator (§4.3).** It seeds facilities, stations bound to them, the other lookups, and **the actor
+rows for every realm user except the bootstrap admin** (§10.2). That is what makes every environment start
+from the same reference data, and what lets a demo switch between a facility admin and a system admin
+without anyone configuring anything. It is the developer's stated reason for moving lookups into the
+generator and it is a good one.
+
+The division of labour is worth stating once, because three mechanisms are involved and each owns a
+different slice:
+
+| Mechanism | Owns |
+| --- | --- |
+| `HasData` in the migration | The system admin actor. Nothing else |
+| The realm import | The Keycloak users — 3N + 1 of them, on fixed GUIDs |
+| The generator | Facilities, all lookups, actor rows matching the 3N realm users, and the faults |
 
 **The frontend.** `use-is-admin.ts` reads one role from the ID token and returns a boolean; it becomes two
 roles. Read scoping also means the UI needs a notion of which facility is in view, and a facility switcher
@@ -982,7 +1016,8 @@ once at the end, not between steps.
 | # | Step | Workstream | Status |
 | --- | --- | --- | --- |
 | 1 | Settle every §2 open question that blocks schema — attribution shape (§6.3), whether error codes and customers are facility-scoped (§10.3), the escape's facility source (§10.5), and whether the concurrency token goes on the wire (§5.2) | B, C, F | **not started** |
-| 2 | **All schema changes at once**, as entities and configurations: escape attribution (§6), the `Facility` entity, `Station.FacilityId`, `Actor.FacilityId`, `Defect.FacilityId`, `Escape.FacilityId` (§10), and the §4.4 index set with facility leading the common paths | A, C, F | not started |
+| 2 | **All schema changes at once**, as entities and configurations: escape attribution (§6), the `Facility` entity, `Station.FacilityId`, nullable `Actor.FacilityId`, `Defect.FacilityId`, `Escape.FacilityId` (§10), the §4.4 index set with facility leading the common paths, and dropping the operator identity from `DataConstants` and `ActorConfiguration.HasData` (§10.2) | A, C, F | not started |
+| 2a | Move the operator and facility-admin fixtures into `Fhs.IntegrationTests` and seed them from `FhsApiFactory` — thirteen lines, two of them the `FactoryExtensions` helpers (§10.2) | F | not started |
 | 3 | Delete `temp/db` and `temp/keycloak`, delete the migration history, generate **one initial migration**, and remove the `xmin` operation by hand (§4.7) | A | not started |
 | 4 | Capped count and page-number bound (§4.5) | A | not started |
 | 5 | Decide the startup-migration posture; set the load-window Postgres settings (§4.6, §4.2) | A | not started |
