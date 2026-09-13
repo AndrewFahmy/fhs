@@ -407,19 +407,39 @@ indexes — into one.
 
 Two scars from `chain-composition.md` apply directly, and both have cost time before:
 
-**`xmin` must be removed from the generated migration by hand.** It is a Postgres *system* column; EF will
-emit a `CreateColumn` for it and the migration will fail on apply.
-`PersistenceArchitectureTests.No_migration_creates_the_xmin_system_column` catches this, so it is a guard
-rather than a landmine — but only if the architecture tests run before the first `aspire run`.
+**`xmin` must be removed from the generated migration by hand — and only from the migration.** It is a
+Postgres *system* column; EF emits it as a column in each `CreateTable` and the migration fails on apply.
+Delete it from `Up()` in `<timestamp>_InitialCreate.cs` — seven occurrences, one per mutable entity. **Leave
+the `.Designer.cs` and the model snapshot alone**: the test's own failure message says *"the model snapshot
+keeps the mapping."* Stripping it from the snapshot makes the next `migrations add` diff against a model
+with no concurrency token and emit an `AddColumn` for it — the same failure, one migration later.
+`PersistenceArchitectureTests.No_migration_creates_the_xmin_system_column` inspects `UpOperations` only, so
+it is a guard rather than a landmine — provided the architecture tests run before the first `aspire run`.
 
-**`temp/db` has to be deleted too.** A fresh initial migration will not apply over a database whose
-`__EFMigrationsHistory` remembers the old ones. Since storage is a bind mount under `temp/` (§4.2), this is
-a folder deletion — and it pairs with the `temp/keycloak` deletion that §10.10 needs for the realm import
-anyway. Both happen once, together, before the first run.
+**`temp/db` has to be deleted too — but before the first *run*, not before generation.** `migrations add`
+never connects to Postgres; it diffs the model against the snapshot. A fresh initial migration will not
+*apply* over a database whose `__EFMigrationsHistory` remembers the old ones, so the deletion belongs
+immediately before the first `aspire run`. Since storage is a bind mount under `temp/` (§4.2), this is a
+folder deletion — and it pairs with the `temp/keycloak` deletion §10.10 needs for the realm import, which
+itself should wait until the realm has its final shape (step 5a). Both happen once, together.
 
 A third is worth re-reading rather than restating: an index `HasFilter` string is opaque to EF, so a
-mismatch with the naming convention survives `migrations add` and only fails on apply. §4.4 adds a partial
-index, so this is live.
+mismatch with the naming convention survives `migrations add` and only fails on apply. Phase 2 now has three
+such strings — two partial-index filters and the attribution check constraint (§6.4) — so this is live.
+Compare each against the column names in the same `CreateTable` call.
+
+**`--context FhsCommandDbContext` is mandatory.** There is no `IDesignTimeDbContextFactory`, so `dotnet ef`
+builds the application's host to resolve contexts, and both contexts are registered there. The full command,
+from the repo root:
+
+```powershell
+dotnet ef migrations add InitialCreate --project backend/FHS.Api --startup-project backend/FHS.Api --context FhsCommandDbContext --output-dir Data/Migrations
+```
+
+That same fact contradicts `chain-composition.md` §6, which says the query context *"has no design-time
+factory, which makes it un-migratable by construction."* Neither context has a factory; both are migratable
+through the host; `--context` is the only thing selecting the right one. The protection is convention, not
+construction.
 
 Index adjustments after the measurement run (§4.4) are ordinary incremental migrations from that point on,
 or another regeneration while the project is still pre-release — but the one initial migration should be in
@@ -1113,10 +1133,11 @@ once at the end, not between steps.
 | # | Step | Workstream | Status |
 | --- | --- | --- | --- |
 | 1 | Settle every §2 open question that blocks schema — attribution shape (§6.3), whether error codes and customers are facility-scoped (§10.3), the escape's facility source (§10.5), and whether the concurrency token goes on the wire (§5.2) | B, C, F | **not started** |
-| 2 | **All schema changes at once**, as entities and configurations: escape attribution (§6.4), the `Facility` entity, `Station.FacilityId`, nullable `Actor.FacilityId`, `Actor.Kind` (§10.9), `Defect.FacilityId`, `Escape.FacilityId` (§10), the §4.4 index set with facility leading the common paths, and dropping the operator identity from `DataConstants` and `ActorConfiguration.HasData` (§10.2) | A, C, F | **in progress** — attribution is the last piece |
-| 2b | **Make the project compile again.** `dotnet ef migrations add` builds the project first, and step 2 broke three slices that construct entities without their new required `FacilityId`: `CreateDefect` (derive from the loaded station), `CreateStation` (a facility on the request), `CreateEscape` (the actor's facility, with the admin override). Not throwaway — this is step 10c's derivation logic, pulled forward by the migration's build requirement | F | not started |
+| 2 | **All schema changes at once**, as entities and configurations: escape attribution (§6.4), the `Facility` entity, `Station.FacilityId`, nullable `Actor.FacilityId`, `Actor.Kind` (§10.9), `Defect.FacilityId`, `Escape.FacilityId` (§10), the §4.4 index set with facility leading the common paths, and dropping the operator identity from `DataConstants` and `ActorConfiguration.HasData` (§10.2) | A, C, F | **done** (2026-09-13) |
+| 2b | **Make the project compile again.** `dotnet ef migrations add` builds the project first, and step 2 broke three slices that construct entities without their new required `FacilityId`: `CreateDefect` (derive from the loaded station), `CreateStation` (a facility on the request), `CreateEscape` (the actor's facility, with the admin override). Not throwaway — this is step 10c's derivation logic, pulled forward by the migration's build requirement. Role gating stays deferred to 10c in all three | F | **done** (2026-09-13) |
 | 2a | Move the operator and facility-admin fixtures into `Fhs.IntegrationTests` and seed them from `FhsApiFactory` — thirteen lines, two of them the `FactoryExtensions` helpers (§10.2) | F | not started |
-| 3 | Delete `temp/db` and `temp/keycloak`, delete the migration history, generate **one initial migration**, and remove the `xmin` operation by hand (§4.7). Blocked on 2b | A | not started |
+| 3 | Generate **one initial migration** with `--context FhsCommandDbContext`, and remove the seven `xmin` columns from `Up()` by hand — never from the snapshot (§4.7). The old history is already deleted | A | not started |
+| 3a | Delete `temp/db` and `temp/keycloak` — **immediately before the first `aspire run`**, not before generation, and after step 5a so the realm is imported once in its final shape (§4.7) | A, F | not started |
 | 4 | Capped count and page-number bound (§4.5) | A | not started |
 | 5 | Decide the startup-migration posture; set the load-window Postgres settings (§4.6, §4.2) | A | not started |
 | 5a | Keycloak realm: promote `fhs-api-audience` and `realm-roles` into a default client scope **first** (§10.9), then the two roles, the human users on fixed GUIDs, and one machine service-account client per facility with its backing user pinned | F | not started |
