@@ -11,6 +11,7 @@ public sealed class CreateEscapeEndpoint : IEndpoint
         .For<CreateEscapeState, CreateEscapeResponse>()
         .Link<ValidateRequestInput<CreateEscapeRequest>>()
         .Link<ResolveActor>()
+        .Link<ResolveReportingFacility>()
         .Link<LoadAndEnsureCustomerExistence>()
         .Link<ClassifyEscape>()
         .Link<ReportEscape>()

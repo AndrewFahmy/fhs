@@ -8,5 +8,6 @@ public sealed class CreateStationValidator : AbstractValidator<CreateStationRequ
     {
         RuleFor(r => r.Code).NotEmpty().MaximumLength(AppConstants.Data.StationCodeMaxLength);
         RuleFor(r => r.Name).NotEmpty().MaximumLength(AppConstants.Data.StationNameMaxLength);
+        RuleFor(r => r.FacilityCode).NotEmpty().MaximumLength(AppConstants.Data.FacilityCodeMaxLength);
     }
 }

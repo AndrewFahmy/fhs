@@ -1,3 +1,4 @@
+using FHS.Api.Data.Entities;
 using FHS.Api.Interfaces;
 using FHS.Chain.Contracts;
 
@@ -8,4 +9,6 @@ public sealed class CreateStationState(CreateStationRequest request)
         IHasRequest<CreateStationRequest>
 {
     public CreateStationRequest Request { get; } = request;
+
+    public Facility? Facility { get; set; }
 }

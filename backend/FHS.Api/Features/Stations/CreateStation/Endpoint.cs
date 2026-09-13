@@ -11,6 +11,7 @@ public sealed class CreateStationEndpoint : IEndpoint
     private static readonly Chain<CreateStationState, CreateStationResponse> Handle = ChainFactory
         .For<CreateStationState, CreateStationResponse>()
         .Link<ValidateRequestInput<CreateStationRequest>>()
+        .Link<LoadAndEnsureFacilityExistence>()
         .Link<EnsureStationCodeIsUnique>()
         .Link<AddStation>()
         .Link<SaveChanges>()
@@ -32,6 +33,10 @@ public sealed class CreateStationEndpoint : IEndpoint
             .RequireAuthorization(AppConstants.Auth.AdminAccessPolicy)
             .Produces<CreateStationResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status403Forbidden)
-            .ProducesProblems(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
+            .ProducesProblems(
+                StatusCodes.Status400BadRequest,
+                StatusCodes.Status404NotFound,
+                StatusCodes.Status409Conflict
+            );
     }
 }

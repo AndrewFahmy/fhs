@@ -21,4 +21,18 @@ public static class StationErrors
             $"Station '{stationId}' is already decommissioned.",
             ErrorKind.Conflict
         );
+
+    public static Error FacilityNotFound(string code) =>
+        new(
+            "Stations.FacilityNotFound",
+            $"No facility is registered with code '{code}'.",
+            ErrorKind.NotFound
+        );
+
+    public static Error FacilityInactive(string code) =>
+        new(
+            "Stations.FacilityInactive",
+            $"Facility '{code}' is deactivated and cannot accept new stations.",
+            ErrorKind.Conflict
+        );
 }

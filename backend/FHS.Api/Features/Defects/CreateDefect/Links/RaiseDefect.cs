@@ -23,6 +23,7 @@ public sealed class RaiseDefect(FhsCommandDbContext db, TimeProvider clock) : IL
             {
                 StationId = state.Station!.Id,
                 ErrorCodeId = classification.ErrorCodeId,
+                FacilityId = state.Station!.FacilityId,
                 Severity = classification.Severity,
                 Description = state.Request.Description,
                 CreatedBy = state.Actor.Id,

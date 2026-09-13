@@ -34,4 +34,21 @@ public static class EscapeErrors
 
     public static Error EscapeAlreadyResolved(Guid escapeId) =>
         new("Escapes.AlreadyResolved", $"Escape '{escapeId}' has already been resolved.", ErrorKind.Conflict);
+
+    public static Error FacilityNotFound(string code) =>
+        new("Escapes.FacilityNotFound", $"No facility is registered with code '{code}'.", ErrorKind.NotFound);
+
+    public static Error FacilityInactive(string code) =>
+        new(
+            "Escapes.FacilityInactive",
+            $"Facility '{code}' is deactivated and cannot accept new escapes.",
+            ErrorKind.Conflict
+        );
+
+    public static Error FacilityRequired() =>
+        new(
+            "Escapes.FacilityRequired",
+            "This account belongs to no facility, so the escape must name one.",
+            ErrorKind.Validation
+        );
 }

@@ -16,6 +16,8 @@ public sealed class CreateEscapeState(CreateEscapeRequest request)
 
     public List<IDomainEvent> Events { get; } = [];
 
+    public Facility? Facility { get; set; }
+
     public Customer? Customer { get; set; }
 
     public Classification? Classification { get; set; }

@@ -8,6 +8,7 @@ namespace FHS.Api.Features.Escapes.Links;
 
 [Requires(
     nameof(CreateEscapeState.Actor),
+    nameof(CreateEscapeState.Facility),
     nameof(CreateEscapeState.Customer),
     nameof(CreateEscapeState.Classification)
 )]
@@ -24,6 +25,7 @@ public sealed class ReportEscape(FhsCommandDbContext db, TimeProvider clock) : I
                 CustomerId = state.Customer!.Id,
                 ErrorCodeId = classification.ErrorCodeId,
                 Severity = classification.Severity,
+                FacilityId = state.Facility!.Id,
                 Description = state.Request.Description,
                 ReportedBy = state.Actor.Id,
                 ReportedAt = now

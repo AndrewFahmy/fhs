@@ -3,7 +3,12 @@ using FHS.Api.Interfaces;
 
 namespace FHS.Api.Features.Escapes;
 
-public sealed record CreateEscapeRequest(string CustomerCode, string ErrorCode, string Description);
+public sealed record CreateEscapeRequest(
+    string CustomerCode,
+    string ErrorCode,
+    string Description,
+    string? FacilityCode = null
+);
 
 public sealed record CreateEscapeResponse(Guid EscapeId);
 
