@@ -60,7 +60,11 @@ document came from analysis and is only as good as the reasoning attached to it.
 | **A new domain concept named `Facility`, with `facility-admin` and `system-admin` roles** | 2026-09-12 | Stations bind to a facility; a facility admin manages their own facility's reference data, a system admin manages everything. Naming rationale in §10.1 |
 | **Facility scope restricts reading, not just writing** | 2026-09-12 | A facility admin sees only their own facility's defects, escapes and scoped lookups. This is the expensive answer and it was taken deliberately — it reaches every read slice and every aggregate in §7, and it requires `FacilityId` denormalised onto `Defect` and `Escape` (§10.4) |
 | **Facility is inferred, never entered** | 2026-09-12 | A defect takes its facility from the chosen station, the same way severity is derived from the error code rather than offered as an input. No create form has a facility picker. Escapes have no station, so §10.5 handles them separately |
-| **The realm ships 3N + 1 accounts for N facilities** | 2026-09-12 | One system admin, one facility admin per facility, two operators per facility. One of each cannot demonstrate a scoping rule. The realm's fixed user GUIDs and the generator's seeded actors have to agree exactly — see §10.8, where this coupling is load-bearing rather than convenient |
+| **The realm ships 3N + 1 accounts for N facilities** | 2026-09-12 | One system admin, plus per facility: one facility admin, one operator, and **one machine account**. One of each cannot demonstrate a scoping rule. The realm's fixed user GUIDs and the generator's seeded actors have to agree exactly — see §10.10, where this coupling is load-bearing rather than convenient |
+| **One of each facility's two non-admin accounts is a machine** | 2026-09-13 | Shows the system binds to machines without the demo having to say so. `Actor`'s own doc comment already anticipated it — *"automated inspection stations and system jobs raise defects too"* is why the entity is not called `User`. §10.9 |
+| **Station codes stay globally unique** | 2026-09-13 | Facility-local codes would make `StationCode` ambiguous on `CreateDefectRequest`, which carries no facility field by §10.5. The generator prefixes codes per facility instead (`BER-ST-01`), which reads naturally and stays unique |
+| **`Actor` gains `ActorKind { Person, Machine }`** | 2026-09-13 | For the analytics dimension — "defects caught by automated inspection" is the tile that makes machine participation visible. A join to a ~20-row table, so it costs nothing at 25M defects (§10.9) |
+| **Machines authenticate as Keycloak service accounts** | 2026-09-13 | Client credentials grant on a confidential client, not a user with a password. Costs the API nothing, and makes the machine-binding claim real. Two realm traps to clear first — the token mappers and the generated service-account id (§10.9) |
 | **A `GET /me` endpoint, called after login** | 2026-09-12 | The caller's facility lives on `Actor`, not in the token, so the SPA has no other way to know it. For **display only** — the write path never trusts a client-supplied facility (§10.6) |
 | **System admins get a facility control on the create pages** | 2026-09-12 | For defects it is a station-list filter and the request gains no field at all; for escapes it is an optional facility code, admin-only. §10.5 |
 | **The migration history is deleted and regenerated as one initial migration** | 2026-09-12 | Still pre-release, nothing depends on the history, and a required FK on populated tables is the awkward incremental case. Collapses several planned steps into one — with two scars to respect (§4.7) |
@@ -83,7 +87,6 @@ document came from analysis and is only as good as the reasoning attached to it.
 | --- | --- | --- |
 | **Does the concurrency token go on the wire?** | B | `Version` (`xmin`) exists on every mutable entity and appears in **no request and no response** — v1 never contested it because every write is a create or a one-shot transition. The first edit endpoint either exposes it or ships silent last-write-wins. There is no third option and it cannot be retrofitted quietly |
 | Which fields are editable, per entity | B | `Code` is the identity the write API binds on; `Severity` is derived, not entered. "Editable" is not uniform and must be enumerated |
-| Attribution: Station, Defect, or both | C | They differ in reliability (§6.3). Schema decision, and it must land **before** the 50M run |
 | **Are error codes and customers facility-scoped?** | F | Stations are — settled. These two are not, and §10.3 argues they should stay global: a facility-local taxonomy makes cross-facility comparison impossible, and per-facility customers duplicate one real company and fragment escape analytics. The last open piece of the scoping model |
 | Does an escape's facility come from the reporter, or somewhere else? | F | §10.5 recommends the reporter, because an escape has no station to infer from. Needs confirming — it is a schema decision inside the pre-generation window |
 | Which questions the dashboard answers | D | Determines whether aggregates can be computed per request or must be precomputed |
@@ -309,15 +312,31 @@ publishes the state text, and entirely optional.
 test data.
 
 `QueryDefects` filters on station code, error code, severity and resolved-state — each optional — and
-sorts by `created_at DESC, id DESC`. A reasonable starting set:
+sorts by `created_at DESC, id DESC`. Since §10.4 makes read scoping universal, **every scoped read carries
+a facility predicate, so facility leads every composite.** As built:
 
-| Index | Serves |
+| Index on `defects` | Serves |
 | --- | --- |
-| `(created_at DESC, id DESC)` | The unfiltered default list, which is the most common request |
-| `(station_id, created_at DESC)` | Station filter |
-| `(error_code_id, created_at DESC)` | Error code filter |
-| `(severity, created_at DESC)` | Severity filter |
-| `(created_at DESC) WHERE resolved_at IS NULL` | Open defects — partial, small, and the case users actually live in |
+| `(facility_id, created_at DESC, id DESC)` | The scoped default list — the most common request by far |
+| `(facility_id, created_at DESC) WHERE resolved_at IS NULL` | Open defects — partial, small, and the view users live in |
+| `(facility_id, station_id, created_at DESC)` | Station filter |
+| `(facility_id, error_code_id, created_at DESC)` | Error code filter |
+
+`escapes` takes the same four with `reported_at` for `created_at` and `customer_id` for `station_id`.
+
+Because each leads with `facility_id`, EF's foreign-key convention emits no separate facility index — an
+existing index with the FK column as its prefix suppresses it. The convention *does* still emit single
+-column indexes for `station_id`/`customer_id`, `error_code_id`, `created_by` and `resolved_by`. Those are
+not waste: `created_by` is what makes the machine-versus-person tile (§10.9) cheap.
+
+**Two left out deliberately, both better settled by measurement than argument.** *Severity* has three
+values, so an index on it is barely more selective than a scan. *An unscoped `(created_at DESC, id DESC)`*
+would serve system admins, who carry no facility predicate and so cannot use any of the above for the sort
+— roughly 1.2 GB per table, earned only if the cross-facility view is actually used.
+
+**Size, revised.** Four composites plus the convention indexes come to roughly 8 GB per fault table against
+5.5 GB of heap, so about **28 GB total** rather than the 23 GB §4.1 estimates. Same ballpark; worth knowing
+before the disk fills.
 
 Two caveats, both worth stating before anyone treats that table as the answer:
 
@@ -395,7 +414,7 @@ rather than a landmine — but only if the architecture tests run before the fir
 
 **`temp/db` has to be deleted too.** A fresh initial migration will not apply over a database whose
 `__EFMigrationsHistory` remembers the old ones. Since storage is a bind mount under `temp/` (§4.2), this is
-a folder deletion — and it pairs with the `temp/keycloak` deletion that §10.9 needs for the realm import
+a folder deletion — and it pairs with the `temp/keycloak` deletion that §10.10 needs for the realm import
 anyway. Both happen once, together, before the first run.
 
 A third is worth re-reading rather than restating: an index `HasFilter` string is opaque to EF, so a
@@ -531,7 +550,36 @@ carries its station, with the defect's own reliability attached.
 **Recommendation: the Defect link first**, station attribution only if a case appears where the station is
 known and the defect is not.
 
-### 6.4 Sequencing
+### 6.4 As built
+
+Implemented 2026-09-13, per the recommendation above. `Escape` gains two nullable columns and nothing else:
+
+| Column | Type | Note |
+| --- | --- | --- |
+| `AttributedDefectId` | `Guid?`, FK to `defects` | *Attributed*, not *Suspected* — a defect link is usually known with confidence when known at all, so the name stays neutral and the basis carries the confidence |
+| `AttributionBasis` | `AttributionBasis?` — `Assessed` or `Traced`, stored as a string | *Assessed* is somebody's belief; *Traced* is established by serial, batch or lot records. The two must never be pooled in an aggregate |
+
+**No station link.** A linked defect already carries its station, with the defect's reliability attached.
+
+**The pairing is enforced by the database, not by convention.** A check constraint,
+`ck_escapes_attribution_complete`, requires `(attributed_defect_id IS NULL) = (attribution_basis IS NULL)`.
+§6.2's argument was that a bare nullable FK is a trap; rather than trusting every future write path to set
+both columns, Postgres rejects a row carrying one without the other.
+
+**The index is partial**, `WHERE attributed_defect_id IS NOT NULL`. Most escapes carry no attribution and a
+btree stores NULL entries, so a full index would spend most of its size indexing absence. It serves the
+defect detail page's "escapes traced to this defect" list.
+
+Both `HasFilter` and `HasCheckConstraint` pass SQL to Postgres verbatim, so both carry the snake_case scar
+recorded in `chain-composition.md`.
+
+**Cross-facility attribution is deliberately permitted.** An escape received at facility A may trace to a
+defect built at facility B — a customer complains to one site about a unit another site produced. The schema
+has no same-facility constraint because the case is real. It does mean read scoping (§10.4) must decide
+whether a facility-A user may see a link that points into facility B; that is a query and authorization
+decision for step 10e, not a schema one.
+
+### 6.5 Sequencing
 
 These are new columns on `escapes`, which the generator is about to fill. Adding a nullable column is cheap
 metadata; indexing it across tens of millions of rows is not, and neither is backfilling one. **Settle the
@@ -540,7 +588,7 @@ shape, then generate** — this is why C sits inside A's window in §3.
 The generator should populate attribution at a realistic rate — a minority of escapes, not all and not none
 — or every coverage figure in workstream D will read as either 0% or 100% and prove nothing.
 
-### 6.5 Documentation
+### 6.6 Documentation
 
 `chain-composition.md` §1 and the Escapes milestone both record the old decision as settled. When this
 lands they need updating in place, with the reversal and its date, in the style §13 uses for the decisions
@@ -794,7 +842,7 @@ subject and actor id, and `ActorConfiguration.HasData` seeds both. The operator 
 | --- | --- | --- |
 | **System admin** | `DataConstants` + `ActorConfiguration.HasData` | The bootstrap account. `HasData` needs a deterministic key, so both the subject id and the actor id stay constants. It is what makes an empty database administrable |
 | Operator, facility admin — **tests** | `Fhs.IntegrationTests` | The suite currently depends on production seed data, so an unrelated change to the API's seed breaks tests. `FhsApiFactory` seeds its own actors when the container starts. This is a latent coupling being fixed, not a new cost |
-| Operator, facility admin — **demo** | The generator | It is the demo-data authority, and the subject ids belong beside the realm file they must mirror (§10.9) |
+| Operator, facility admin — **demo** | The generator | It is the demo-data authority, and the subject ids belong beside the realm file they must mirror (§10.10) |
 
 The change is contained: thirteen lines reference these constants — two helpers in `FactoryExtensions` and
 eleven event-payload assertions. The roughly fifty `CreateLineOperatorClient()` call sites go through those
@@ -945,7 +993,56 @@ use" rule applies: the second scoped feature is what proves the interface, not t
 The route-level policy does not disappear. `system-admin` endpoints — creating a facility, for instance —
 stay declarative, because nothing needs loading to know the answer.
 
-### 10.9 What else moves
+### 10.9 Machine accounts
+
+Each facility's second non-admin account is a **machine** — an automated inspection station that raises
+defects. It is there to demonstrate that the system binds to machines without the demo having to claim it
+out loud.
+
+This is not a new concept being introduced. `Actor`'s doc comment already says why the entity is not called
+`User`: *"automated inspection stations and system jobs raise defects too."* The machine account makes good
+on a decision recorded in the code on day one.
+
+**A machine can detect a defect; it cannot receive a customer complaint.** So a machine actor may create
+and resolve defects and must never report an escape. Cheap for the generator to honour in its distribution,
+and it is what makes the machine dimension mean something rather than being sprinkled uniformly across both
+tables.
+
+Both sub-decisions settled 2026-09-13:
+
+**`Actor` gains `ActorKind { Person, Machine }`.** Taken for the analytics dimension — a dashboard that can
+say *"41% of defects caught by automated inspection"* demonstrates machine participation far more loudly
+than a name in a list. It stays a join to a ~20-row table, so it is not a denormalisation decision and it
+costs nothing at 25M defects.
+
+**The machine authenticates as a Keycloak service account**, on a confidential client using the client
+credentials grant — not as a user with a password. It costs the API nothing: a service account still
+carries a `sub`, so `ResolveActor`, `ICurrentUser` and every downstream link are unchanged. The claim
+becomes true rather than cosmetic.
+
+**It cannot log into the SPA, and should not.** A service account belongs to a client, not a person, and
+has no interactive login. The path is machine → Keycloak token endpoint → FHS API with a bearer token, and
+the SPA is never involved. Demonstrating it therefore means either showing the resulting rows in the UI,
+posting a defect live with two calls, or running a small simulator that authenticates and posts on a timer
+— the last being real extra scope, worth deciding rather than drifting into.
+
+**Two configuration traps, both verified against the realm as it stands:**
+
+*The token mappers are on the wrong object.* `fhs-api-audience` and `realm-roles` are attached to the
+**`fhs-spa` client**, not to a shared client scope. Any new client inherits neither — no `fhs-api`
+audience, so the API rejects the token with a 401, and no `roles` claim. With one machine client per
+facility, the fix is to promote both mappers into a client scope and make it default, not to copy them onto
+every client.
+
+*A service account's user id is generated, not declared.* Enabling `serviceAccountsEnabled` makes Keycloak
+create the backing user itself, which breaks the fixed-GUID pattern the seeded actors depend on. Pin it by
+declaring that user explicitly in the realm's `users` array with a fixed `id` and a `serviceAccountClientLink`
+to its client — **verify this against the Keycloak version in use before building on it.** The symptom if
+it does not pin is precise: every machine call fails `UnknownActor`, because the token's `sub` matches no
+seeded actor. Fallback is a normal user with a fixed id and the password grant — less pure at the auth
+layer, identical in the data.
+
+### 10.10 What else moves
 
 **Keycloak, and the coupling that makes or breaks a fresh clone.** The realm needs the two new roles and
 **3N + 1 users for N facilities** — one system admin, one facility admin per facility, and two operators
@@ -1016,12 +1113,13 @@ once at the end, not between steps.
 | # | Step | Workstream | Status |
 | --- | --- | --- | --- |
 | 1 | Settle every §2 open question that blocks schema — attribution shape (§6.3), whether error codes and customers are facility-scoped (§10.3), the escape's facility source (§10.5), and whether the concurrency token goes on the wire (§5.2) | B, C, F | **not started** |
-| 2 | **All schema changes at once**, as entities and configurations: escape attribution (§6), the `Facility` entity, `Station.FacilityId`, nullable `Actor.FacilityId`, `Defect.FacilityId`, `Escape.FacilityId` (§10), the §4.4 index set with facility leading the common paths, and dropping the operator identity from `DataConstants` and `ActorConfiguration.HasData` (§10.2) | A, C, F | not started |
+| 2 | **All schema changes at once**, as entities and configurations: escape attribution (§6.4), the `Facility` entity, `Station.FacilityId`, nullable `Actor.FacilityId`, `Actor.Kind` (§10.9), `Defect.FacilityId`, `Escape.FacilityId` (§10), the §4.4 index set with facility leading the common paths, and dropping the operator identity from `DataConstants` and `ActorConfiguration.HasData` (§10.2) | A, C, F | **in progress** — attribution is the last piece |
+| 2b | **Make the project compile again.** `dotnet ef migrations add` builds the project first, and step 2 broke three slices that construct entities without their new required `FacilityId`: `CreateDefect` (derive from the loaded station), `CreateStation` (a facility on the request), `CreateEscape` (the actor's facility, with the admin override). Not throwaway — this is step 10c's derivation logic, pulled forward by the migration's build requirement | F | not started |
 | 2a | Move the operator and facility-admin fixtures into `Fhs.IntegrationTests` and seed them from `FhsApiFactory` — thirteen lines, two of them the `FactoryExtensions` helpers (§10.2) | F | not started |
-| 3 | Delete `temp/db` and `temp/keycloak`, delete the migration history, generate **one initial migration**, and remove the `xmin` operation by hand (§4.7) | A | not started |
+| 3 | Delete `temp/db` and `temp/keycloak`, delete the migration history, generate **one initial migration**, and remove the `xmin` operation by hand (§4.7). Blocked on 2b | A | not started |
 | 4 | Capped count and page-number bound (§4.5) | A | not started |
 | 5 | Decide the startup-migration posture; set the load-window Postgres settings (§4.6, §4.2) | A | not started |
-| 5a | Keycloak realm: the two roles and 3N + 1 users on fixed GUIDs (§10.9) | F | not started |
+| 5a | Keycloak realm: promote `fhs-api-audience` and `realm-roles` into a default client scope **first** (§10.9), then the two roles, the human users on fixed GUIDs, and one machine service-account client per facility with its backing user pinned | F | not started |
 | 6 | The generator project — auto-started, gated on `WaitFor(api)`, guarded, `COPY`-based, two parallel writers, dashboard progress (§4.3) | A | not started |
 | 7 | **The first run.** Generate the dataset, then `EXPLAIN (ANALYZE, BUFFERS)` the read path and adjust the index set — in the API migration — against measurement | A | not started |
 | 8 | Reactivation commands for the lookups (§5.1) | B | not started |
