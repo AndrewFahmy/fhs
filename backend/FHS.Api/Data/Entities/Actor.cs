@@ -1,3 +1,4 @@
+using FHS.Api.Enums;
 using FHS.Api.Interfaces;
 
 namespace FHS.Api.Data.Entities;
@@ -16,9 +17,16 @@ public sealed class Actor : IDbEntity
 
     public required string DisplayName { get; set; }
 
+    public ActorKind Kind { get; init; } = ActorKind.Person;
+
+    public Guid? FacilityId { get; set; }
+
     /// <summary>
     /// Postgres' system <c>xmin</c> column, used as an optimistic concurrency token.
     /// Maintained by the database; never assigned by the application.
     /// </summary>
     public uint Version { get; private set; }
+
+    // Navigation properties
+    public Facility? Facility { get; set; }
 }

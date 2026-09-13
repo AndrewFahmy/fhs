@@ -8,6 +8,8 @@ public sealed class ActorConfiguration : IEntityTypeConfiguration<Actor>
 {
     public void Configure(EntityTypeBuilder<Actor> builder)
     {
+        builder.ToTable("actors");
+
         builder.HasKey(a => a.Id);
         builder.Property(a => a.Id).ValueGeneratedNever();
 
@@ -18,13 +20,18 @@ public sealed class ActorConfiguration : IEntityTypeConfiguration<Actor>
 
         builder.Property(x => x.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
 
+        builder
+            .Property(a => a.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(AppConstants.Data.ActorKindMaxLength);
+
+        builder
+            .HasOne(a => a.Facility)
+            .WithMany()
+            .HasForeignKey(a => a.FacilityId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasData(
-            new Actor
-            {
-                Id = AppConstants.Data.LineOperatorActorId,
-                SubjectId = AppConstants.Data.LineOperatorSubjectId,
-                DisplayName = "Line Operator"
-            },
             new Actor
             {
                 Id = AppConstants.Data.AdminActorId,

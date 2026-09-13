@@ -9,6 +9,7 @@ public sealed class Defect : IDbEntity
 
     public required Guid StationId { get; init; }
     public required Guid ErrorCodeId { get; init; }
+    public required Guid FacilityId { get; init; }
     public required string Description { get; init; }
     public required Severity Severity { get; init; }
 
@@ -29,6 +30,8 @@ public sealed class Defect : IDbEntity
     public Station Station { get; set; } = null!;
 
     public ErrorCode ErrorCode { get; set; } = null!;
+
+    public Facility Facility { get; set; } = null!;
 
     public Actor Creator { get; set; } = null!;
 

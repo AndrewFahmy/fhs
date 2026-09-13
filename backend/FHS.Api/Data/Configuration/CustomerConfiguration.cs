@@ -7,6 +7,8 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
     public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Customer> builder)
     {
+        builder.ToTable("customers");
+        
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Id).ValueGeneratedNever();
 

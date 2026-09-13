@@ -2,7 +2,7 @@ using FHS.Api.Interfaces;
 
 namespace FHS.Api.Data.Entities;
 
-public sealed class Station : IDbEntity
+public sealed class Facility : IDbEntity
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
@@ -12,14 +12,9 @@ public sealed class Station : IDbEntity
 
     public bool IsActive { get; set; } = true;
 
-    public required Guid FacilityId { get; init; }
-
     /// <summary>
     /// Postgres' system <c>xmin</c> column, used as an optimistic concurrency token.
     /// Maintained by the database; never assigned by the application.
     /// </summary>
     public uint Version { get; private set; }
-
-    // Navigation properties
-    public Facility Facility { get; set; } = null!;
 }

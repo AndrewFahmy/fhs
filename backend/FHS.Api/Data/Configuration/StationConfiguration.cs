@@ -8,6 +8,8 @@ public sealed class StationConfiguration : IEntityTypeConfiguration<Station>
 {
     public void Configure(EntityTypeBuilder<Station> builder)
     {
+        builder.ToTable("stations");
+
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id).ValueGeneratedNever();
 
@@ -17,5 +19,11 @@ public sealed class StationConfiguration : IEntityTypeConfiguration<Station>
         builder.Property(s => s.Name).HasMaxLength(AppConstants.Data.StationNameMaxLength);
 
         builder.Property(x => x.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
+
+        builder
+            .HasOne(s => s.Facility)
+            .WithMany()
+            .HasForeignKey(s => s.FacilityId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

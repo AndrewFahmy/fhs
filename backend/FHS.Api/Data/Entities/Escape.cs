@@ -11,6 +11,8 @@ public sealed class Escape : IDbEntity
 
     public required Guid ErrorCodeId { get; init; }
 
+    public required Guid FacilityId { get; init; }
+
     public required string Description { get; init; }
 
     public required Severity Severity { get; init; }
@@ -25,6 +27,10 @@ public sealed class Escape : IDbEntity
 
     public DateTimeOffset? ResolvedAt { get; set; }
 
+    public Guid? AttributedDefectId { get; set; }
+
+    public AttributionBasis? AttributionBasis { get; set; }
+
     /// <summary>
     /// Postgres' system <c>xmin</c> column, used as an optimistic concurrency token.
     /// Maintained by the database; never assigned by the application.
@@ -32,9 +38,13 @@ public sealed class Escape : IDbEntity
     public uint Version { get; private set; }
 
     // Navigation properties
+    public Defect? AttributedDefect { get; set; }
+    
     public Customer Customer { get; set; } = null!;
 
     public ErrorCode ErrorCode { get; set; } = null!;
+
+    public Facility Facility { get; set; } = null!;
 
     public Actor Reporter { get; set; } = null!;
 

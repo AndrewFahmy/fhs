@@ -8,6 +8,8 @@ public sealed class ErrorCodeConfiguration : IEntityTypeConfiguration<ErrorCode>
 {
     public void Configure(EntityTypeBuilder<ErrorCode> builder)
     {
+        builder.ToTable("error_codes");
+
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
 

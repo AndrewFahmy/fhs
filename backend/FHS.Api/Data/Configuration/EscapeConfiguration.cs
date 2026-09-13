@@ -8,6 +8,15 @@ public sealed class EscapeConfiguration : IEntityTypeConfiguration<Escape>
 {
     public void Configure(EntityTypeBuilder<Escape> builder)
     {
+        builder.ToTable(
+            "escapes",
+            t =>
+                t.HasCheckConstraint(
+                    "ck_escapes_attribution_complete",
+                    "(attributed_defect_id IS NULL) = (attribution_basis IS NULL)"
+                )
+        );
+
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
 
@@ -22,6 +31,17 @@ public sealed class EscapeConfiguration : IEntityTypeConfiguration<Escape>
             .HasMaxLength(AppConstants.Data.EscapeSeverityMaxLength);
 
         builder
+            .Property(e => e.AttributionBasis)
+            .HasConversion<string>()
+            .HasMaxLength(AppConstants.Data.EscapeAttributionBasisMaxLength);
+
+        builder
+            .HasOne(e => e.AttributedDefect)
+            .WithMany()
+            .HasForeignKey(e => e.AttributedDefectId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
             .HasOne(e => e.Customer)
             .WithMany()
             .HasForeignKey(e => e.CustomerId)
@@ -31,6 +51,12 @@ public sealed class EscapeConfiguration : IEntityTypeConfiguration<Escape>
             .HasOne(e => e.ErrorCode)
             .WithMany()
             .HasForeignKey(e => e.ErrorCodeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(e => e.Facility)
+            .WithMany()
+            .HasForeignKey(e => e.FacilityId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder
@@ -44,5 +70,39 @@ public sealed class EscapeConfiguration : IEntityTypeConfiguration<Escape>
             .WithMany()
             .HasForeignKey(e => e.ResolvedBy)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasIndex(e => new
+            {
+                e.FacilityId,
+                e.ReportedAt,
+                e.Id
+            })
+            .IsDescending(false, true, true);
+
+        builder
+            .HasIndex(e => new { e.FacilityId, e.ReportedAt })
+            .IsDescending(false, true)
+            .HasFilter("resolved_at IS NULL");
+
+        builder
+            .HasIndex(e => new
+            {
+                e.FacilityId,
+                e.CustomerId,
+                e.ReportedAt
+            })
+            .IsDescending(false, false, true);
+
+        builder
+            .HasIndex(e => new
+            {
+                e.FacilityId,
+                e.ErrorCodeId,
+                e.ReportedAt
+            })
+            .IsDescending(false, false, true);
+
+        builder.HasIndex(e => e.AttributedDefectId).HasFilter("attributed_defect_id IS NOT NULL");
     }
 }
