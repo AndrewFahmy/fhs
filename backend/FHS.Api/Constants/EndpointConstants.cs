@@ -11,5 +11,7 @@ public static partial class AppConstants
         public const string CustomersGroupName = "Customers";
 
         public const string EscapesGroupName = "Escapes";
+
+        public const string FacilitiesGroupName = "Facilities";
     }
 }
