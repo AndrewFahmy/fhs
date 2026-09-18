@@ -5,7 +5,10 @@ public static partial class AppConstants
         public const string DatabaseConnectionName = "DbConnection";
 
         public const string AdminSubjectId = "11111111-1111-4111-8111-111111111111";
-        public static readonly Guid AdminActorId = Guid.Parse("a5a5a5a5-0000-4000-8000-000000000001");
+        public static readonly Guid AdminActorId = Guid.Parse("3fba3307-da98-4573-9542-1ee925b43fd4");
+
+        public const string DefaultFacilityCode = "DEFAULT";
+        public static readonly Guid DefaultFacilityId = Guid.Parse("2658db5b-e9bf-4a6c-8b3e-9bc2740d39f3");
 
         public const int ActorDisplayNameMaxLength = 200;
         public const int ActorSubjectIdMaxLength = 255;

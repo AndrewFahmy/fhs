@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FHS.Api.Data.Migrations
 {
     [DbContext(typeof(FhsCommandDbContext))]
-    [Migration("20260913184926_InitialCreate")]
+    [Migration("20260918200914_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -74,7 +74,7 @@ namespace FHS.Api.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a5a5a5a5-0000-4000-8000-000000000001"),
+                            Id = new Guid("3fba3307-da98-4573-9542-1ee925b43fd4"),
                             DisplayName = "System Administrator",
                             Kind = "Person",
                             SubjectId = "11111111-1111-4111-8111-111111111111",
@@ -400,6 +400,16 @@ namespace FHS.Api.Data.Migrations
                         .HasDatabaseName("ix_facilities_code");
 
                     b.ToTable("facilities", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("2658db5b-e9bf-4a6c-8b3e-9bc2740d39f3"),
+                            Code = "DEFAULT",
+                            IsActive = true,
+                            Name = "Default Facility",
+                            Version = 0u
+                        });
                 });
 
             modelBuilder.Entity("FHS.Api.Data.Entities.OutboxMessage", b =>

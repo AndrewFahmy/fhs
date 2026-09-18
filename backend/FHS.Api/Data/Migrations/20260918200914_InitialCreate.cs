@@ -21,7 +21,7 @@ namespace FHS.Api.Data.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -182,7 +182,7 @@ namespace FHS.Api.Data.Migrations
                     resolved_by = table.Column<Guid>(type: "uuid", nullable: true),
                     resolved_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     attributed_defect_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    attribution_basis = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true)                    
+                    attribution_basis = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -229,7 +229,12 @@ namespace FHS.Api.Data.Migrations
             migrationBuilder.InsertData(
                 table: "actors",
                 columns: new[] { "id", "display_name", "facility_id", "kind", "subject_id" },
-                values: new object[] { new Guid("a5a5a5a5-0000-4000-8000-000000000001"), "System Administrator", null, "Person", "11111111-1111-4111-8111-111111111111" });
+                values: new object[] { new Guid("3fba3307-da98-4573-9542-1ee925b43fd4"), "System Administrator", null, "Person", "11111111-1111-4111-8111-111111111111" });
+
+            migrationBuilder.InsertData(
+                table: "facilities",
+                columns: new[] { "id", "code", "is_active", "name" },
+                values: new object[] { new Guid("2658db5b-e9bf-4a6c-8b3e-9bc2740d39f3"), "DEFAULT", true, "Default Facility" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_actors_facility_id",

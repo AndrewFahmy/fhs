@@ -19,5 +19,14 @@ public sealed class FacilityConfiguration : IEntityTypeConfiguration<Facility>
         builder.Property(f => f.Name).HasMaxLength(AppConstants.Data.FacilityNameMaxLength);
 
         builder.Property(f => f.Version).HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
+
+        builder.HasData(
+            new Facility
+            {
+                Id = AppConstants.Data.DefaultFacilityId,
+                Code = AppConstants.Data.DefaultFacilityCode,
+                Name = "Default Facility"
+            }
+        );
     }
 }
