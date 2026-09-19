@@ -1,3 +1,5 @@
+using FHS.Api.Data;
+using FHS.Api.Data.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 
-namespace Fhs.IntegrationTests;
+namespace FHS.IntegrationTests;
 
 public sealed class FhsApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
@@ -20,7 +22,7 @@ public sealed class FhsApiFactory : WebApplicationFactory<Program>, IAsyncLifeti
 
     /// <summary>
     /// Frozen unless a test advances it, so every timestamp the API writes is exactly predictable.
-    /// Whole seconds in UTC: Postgres' <c>timestamptz</c> keeps microseconds, so it round-trips intact.
+    /// Whole seconds in UTC: Postgres' <c>timestampTZ</c> keeps microseconds, so it round-trips intact.
     /// </summary>
     public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
@@ -30,6 +32,8 @@ public sealed class FhsApiFactory : WebApplicationFactory<Program>, IAsyncLifeti
 
         // Building the host runs Program.cs, including MigrateAsync.
         using var _ = CreateClient();
+
+        await SeedAsync();
     }
 
     public override async ValueTask DisposeAsync()
@@ -84,5 +88,26 @@ public sealed class FhsApiFactory : WebApplicationFactory<Program>, IAsyncLifeti
         }
 
         return client;
+    }
+
+    // Private methods
+    private async Task SeedAsync()
+    {
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<FhsCommandDbContext>();
+
+        // "Line Operator" is asserted verbatim as RaisedBy/ReportedBy/ResolvedBy in six tests.
+        db.Set<Actor>()
+            .Add(
+                new Actor
+                {
+                    Id = TestData.LineOperatorActorId,
+                    SubjectId = TestData.LineOperatorSubjectId,
+                    DisplayName = "Line Operator",
+                    FacilityId = AppConstants.Data.DefaultFacilityId
+                }
+            );
+
+        await db.SaveChangesAsync();
     }
 }

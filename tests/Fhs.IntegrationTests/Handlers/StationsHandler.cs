@@ -1,19 +1,20 @@
 using System.Net.Http.Json;
-using Fhs.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Extensions;
 using FHS.Api.Features.Stations;
 
-namespace Fhs.IntegrationTests.Handlers;
+namespace FHS.IntegrationTests.Handlers;
 
 internal static class StationsHandler
 {
     public static async Task<Guid> CreateStationAsync(
         HttpClient client,
         string code,
+        string facilityCode,
         CancellationToken ct,
         string? name = null
     )
     {
-        var response = await client.PostAsJsonAsync("/stations", new { code, name = name ?? code }, ct);
+        var response = await client.PostAsJsonAsync("/stations", new { code, facilityCode, name = name ?? code }, ct);
         response.EnsureSuccessStatusCode();
 
         var created = await response.Content.ReadFromJsonAsync<CreateStationResponse>(ct);

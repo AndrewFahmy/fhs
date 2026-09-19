@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using FHS.Api.Data.Entities;
 using FHS.Api.Interfaces;
 
-namespace Fhs.IntegrationTests.Extensions;
+namespace FHS.IntegrationTests.Extensions;
 
 internal static class JsonExtensions
 {

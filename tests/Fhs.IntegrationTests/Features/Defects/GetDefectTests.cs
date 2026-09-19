@@ -1,11 +1,11 @@
 using System.Net;
 using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Defects;
+namespace FHS.IntegrationTests.Features.Defects;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class GetDefectTests(FhsApiFactory factory)
@@ -19,12 +19,14 @@ public sealed class GetDefectTests(FhsApiFactory factory)
 
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
+        var facilityCode = AppConstants.Data.DefaultFacilityCode;
 
         // Name and description differ from their codes on purpose: if the projection reached for the
         // wrong column of the joined row, equal values would hide it.
         var stationId = await StationsHandler.CreateStationAsync(
             adminClient,
             stationCode,
+            facilityCode,
             ct,
             "Door line, bay 4"
         );

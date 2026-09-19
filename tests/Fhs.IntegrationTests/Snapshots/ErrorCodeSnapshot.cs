@@ -1,8 +1,8 @@
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
-using Fhs.IntegrationTests.Interfaces;
+using FHS.IntegrationTests.Interfaces;
 
-namespace Fhs.IntegrationTests.Snapshots;
+namespace FHS.IntegrationTests.Snapshots;
 
 internal sealed record ErrorCodeSnapshot(string Code, string Description, Severity Severity, bool IsActive)
     : ISnapshotModel

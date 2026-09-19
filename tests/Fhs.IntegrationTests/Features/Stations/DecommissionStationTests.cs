@@ -1,11 +1,11 @@
 using System.Net;
 using FHS.Api.Data.Entities;
 using FHS.Api.Features.Stations;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Stations;
+namespace FHS.IntegrationTests.Features.Stations;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class DecommissionStationTests(FhsApiFactory factory)
@@ -20,8 +20,9 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
         var code = adminClient.UniqueCode("ST");
         var name = $"{code} assembly bay";
         var decommissionedAt = factory.Clock.GetUtcNow();
+        var facilityCode = AppConstants.Data.DefaultFacilityCode;
 
-        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, name);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, facilityCode, ct, name);
 
         var first = await adminClient.PostAsync(EndpointRoute(stationId), null, ct);
         var second = await adminClient.PostAsync(EndpointRoute(stationId), null, ct);
@@ -50,7 +51,9 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await factory.CreateAdminClient().PostAsync(EndpointRoute(Guid.CreateVersion7()), null, ct);
+        var response = await factory
+            .CreateAdminClient()
+            .PostAsync(EndpointRoute(Guid.CreateVersion7()), null, ct);
 
         Assert.Equal(
             new ProblemSnapshot(HttpStatusCode.NotFound, "Stations.NotFound"),
@@ -63,9 +66,11 @@ public sealed class DecommissionStationTests(FhsApiFactory factory)
     {
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.CreateAdminClient();
+
         var stationId = await StationsHandler.CreateStationAsync(
             adminClient,
             adminClient.UniqueCode("ST"),
+            AppConstants.Data.DefaultFacilityCode,
             ct
         );
 

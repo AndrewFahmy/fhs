@@ -3,11 +3,11 @@ using System.Net.Http.Json;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Defects;
+namespace FHS.IntegrationTests.Features.Defects;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class ResolveDefectTests(FhsApiFactory factory)
@@ -43,10 +43,10 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
                 errorCodeId,
                 "Scratch on door panel",
                 Severity.Major,
-                AppConstants.Data.LineOperatorActorId,
+                TestData.LineOperatorActorId,
                 CreatedAt: raisedAt,
                 Resolution: "Buffed and re-inspected",
-                ResolvedBy: AppConstants.Data.LineOperatorActorId,
+                ResolvedBy: TestData.LineOperatorActorId,
                 ResolvedAt: resolvedAt
             ),
             DefectSnapshot.From(defect)
@@ -58,7 +58,7 @@ public sealed class ResolveDefectTests(FhsApiFactory factory)
                     new DefectRaised(defectId, stationId, errorCodeId, Severity.Major, raisedAt)
                 ),
                 OutboxMessageSnapshot.For(
-                    new DefectResolved(defectId, AppConstants.Data.LineOperatorActorId, resolvedAt)
+                    new DefectResolved(defectId, TestData.LineOperatorActorId, resolvedAt)
                 )
             ],
             [.. (await factory.OutboxForAsync(defectId, ct)).Select(OutboxMessageSnapshot.From)]

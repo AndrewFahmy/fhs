@@ -1,9 +1,9 @@
 using FHS.Api.Data.Entities;
 using FHS.Api.Interfaces;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Interfaces;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Interfaces;
 
-namespace Fhs.IntegrationTests.Snapshots;
+namespace FHS.IntegrationTests.Snapshots;
 
 internal sealed record OutboxMessageSnapshot(
     string Type,

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
-namespace Fhs.ArchitectureTests;
+namespace FHS.ArchitectureTests;
 
 public sealed class PersistenceArchitectureTests
 {

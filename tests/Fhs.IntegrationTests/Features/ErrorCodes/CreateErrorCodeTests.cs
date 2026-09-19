@@ -2,11 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Snapshots;
-using Fhs.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Handlers;
 
-namespace Fhs.IntegrationTests.Features.ErrorCodes;
+namespace FHS.IntegrationTests.Features.ErrorCodes;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class CreateErrorCodeTests(FhsApiFactory factory)

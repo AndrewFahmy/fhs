@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Fhs.IntegrationTests;
+namespace FHS.IntegrationTests;
 
 /// <summary>
 /// Replaces JwtBearer as the default scheme. Everything downstream is untouched — RequireAuthorization

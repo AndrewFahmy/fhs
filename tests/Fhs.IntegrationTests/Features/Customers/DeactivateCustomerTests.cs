@@ -1,11 +1,11 @@
 using System.Net;
 using FHS.Api.Data.Entities;
 using FHS.Api.Features.Customers;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Customers;
+namespace FHS.IntegrationTests.Features.Customers;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class DeactivateCustomerTests(FhsApiFactory factory)

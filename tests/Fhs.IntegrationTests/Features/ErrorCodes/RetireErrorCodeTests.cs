@@ -2,11 +2,11 @@ using System.Net;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.ErrorCodes;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.ErrorCodes;
+namespace FHS.IntegrationTests.Features.ErrorCodes;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class RetireErrorCodeTests(FhsApiFactory factory)

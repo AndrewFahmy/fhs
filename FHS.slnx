@@ -8,7 +8,7 @@
     <Project Path="infra/FHS.ServiceDefaults/FHS.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Fhs.ArchitectureTests/Fhs.ArchitectureTests.csproj" />
-    <Project Path="tests/Fhs.IntegrationTests/Fhs.IntegrationTests.csproj" />
+    <Project Path="tests/FHS.ArchitectureTests/FHS.ArchitectureTests.csproj" />
+    <Project Path="tests/FHS.IntegrationTests/FHS.IntegrationTests.csproj" />
   </Folder>
 </Solution>

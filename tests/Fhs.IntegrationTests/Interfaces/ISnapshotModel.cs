@@ -1,4 +1,4 @@
-namespace Fhs.IntegrationTests.Interfaces;
+namespace FHS.IntegrationTests.Interfaces;
 
 public interface ISnapshotModel
 {

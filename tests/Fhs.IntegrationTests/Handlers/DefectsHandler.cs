@@ -2,9 +2,9 @@ using System.Net.Http.Json;
 using FHS.Api.Enums;
 using FHS.Api.Features.Defects;
 using FHS.Api.Primitives;
-using Fhs.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Extensions;
 
-namespace Fhs.IntegrationTests.Handlers;
+namespace FHS.IntegrationTests.Handlers;
 
 internal static class DefectsHandler
 {
@@ -17,8 +17,9 @@ internal static class DefectsHandler
         var adminClient = factory.CreateAdminClient();
         var stationCode = adminClient.UniqueCode("ST");
         var errorCode = adminClient.UniqueCode("EC");
+        var facilityCode = AppConstants.Data.DefaultFacilityCode;
 
-        var stationId = await StationsHandler.CreateStationAsync(adminClient, stationCode, ct);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, stationCode, facilityCode, ct);
         var errorCodeId = await ErrorCodesHandler.CreateErrorCodeAsync(
             adminClient,
             errorCode,

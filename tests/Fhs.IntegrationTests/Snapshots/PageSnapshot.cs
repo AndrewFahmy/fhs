@@ -1,6 +1,6 @@
 using FHS.Api.Primitives;
 
-namespace Fhs.IntegrationTests.Snapshots;
+namespace FHS.IntegrationTests.Snapshots;
 
 internal sealed record PageSnapshot(int Page, int PageSize, int TotalCount, int TotalPages)
 {

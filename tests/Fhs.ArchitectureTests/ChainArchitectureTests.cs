@@ -3,7 +3,7 @@ using FHS.Api.Links;
 using FHS.Chain;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Fhs.ArchitectureTests;
+namespace FHS.ArchitectureTests;
 
 public sealed class ChainArchitectureTests
 {

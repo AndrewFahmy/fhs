@@ -3,11 +3,11 @@ using System.Net.Http.Json;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.Escapes;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Escapes;
+namespace FHS.IntegrationTests.Features.Escapes;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class CreateEscapeTests(FhsApiFactory factory)
@@ -60,7 +60,7 @@ public sealed class CreateEscapeTests(FhsApiFactory factory)
                 errorCodeId,
                 "Paint run found at customer",
                 Severity.Critical,
-                AppConstants.Data.LineOperatorActorId,
+                TestData.LineOperatorActorId,
                 ReportedAt: reportedAt,
                 Resolution: null,
                 ResolvedBy: null,

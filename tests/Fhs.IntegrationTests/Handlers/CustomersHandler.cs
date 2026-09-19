@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using FHS.Api.Features.Customers;
-using Fhs.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Extensions;
 
-namespace Fhs.IntegrationTests.Handlers;
+namespace FHS.IntegrationTests.Handlers;
 
 internal static class CustomersHandler
 {

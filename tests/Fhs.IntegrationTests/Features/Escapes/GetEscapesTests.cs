@@ -1,12 +1,12 @@
 using System.Net;
 using FHS.Api.Enums;
 using FHS.Api.Primitives;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 using FHS.Api.Features.Escapes;
 
-namespace Fhs.IntegrationTests.Features.Escapes;
+namespace FHS.IntegrationTests.Features.Escapes;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class GetEscapesTests(FhsApiFactory factory)

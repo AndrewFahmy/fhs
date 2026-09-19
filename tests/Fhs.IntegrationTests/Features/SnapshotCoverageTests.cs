@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Text;
-using Fhs.IntegrationTests.Interfaces;
+using FHS.IntegrationTests.Interfaces;
 
-namespace Fhs.IntegrationTests.Features;
+namespace FHS.IntegrationTests.Features;
 
 public sealed class SnapshotCoverageTests
 {

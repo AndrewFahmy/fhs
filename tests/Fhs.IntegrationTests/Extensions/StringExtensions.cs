@@ -1,4 +1,4 @@
-namespace Fhs.IntegrationTests.Extensions;
+namespace FHS.IntegrationTests.Extensions;
 
 internal static class StringExtensions
 {

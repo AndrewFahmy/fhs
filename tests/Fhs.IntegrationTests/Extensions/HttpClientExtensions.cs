@@ -4,7 +4,7 @@ using FHS.Api.Features.Defects;
 using FHS.Api.Features.ErrorCodes;
 using FHS.Api.Features.Stations;
 
-namespace Fhs.IntegrationTests.Extensions;
+namespace FHS.IntegrationTests.Extensions;
 
 internal static class HttpClientExtensions
 {

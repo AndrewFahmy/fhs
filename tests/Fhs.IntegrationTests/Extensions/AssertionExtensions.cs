@@ -4,7 +4,7 @@ using FHS.Api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Fhs.IntegrationTests.Extensions;
+namespace FHS.IntegrationTests.Extensions;
 
 internal static class AssertionExtensions
 {

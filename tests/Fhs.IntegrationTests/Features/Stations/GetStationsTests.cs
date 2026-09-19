@@ -1,8 +1,8 @@
 using FHS.Api.Features.Stations;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
 
-namespace Fhs.IntegrationTests.Features.Stations;
+namespace FHS.IntegrationTests.Features.Stations;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class GetStationsTests(FhsApiFactory factory)
@@ -13,12 +13,25 @@ public sealed class GetStationsTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.CreateAdminClient();
         var prefix = adminClient.UniqueCode("ST");
+        var facilityCode = AppConstants.Data.DefaultFacilityCode;
 
         // Created out of order so the ordering assertion means something, and suffixed with letters
         // rather than punctuation so no database collation rule can reorder them.
-        await StationsHandler.CreateStationAsync(adminClient, $"{prefix}C", ct, "Third bay");
-        var a = await StationsHandler.CreateStationAsync(adminClient, $"{prefix}A", ct, "First bay");
-        var b = await StationsHandler.CreateStationAsync(adminClient, $"{prefix}B", ct, "Second bay");
+        await StationsHandler.CreateStationAsync(adminClient, $"{prefix}C", facilityCode, ct, "Third bay");
+        var a = await StationsHandler.CreateStationAsync(
+            adminClient,
+            $"{prefix}A",
+            facilityCode,
+            ct,
+            "First bay"
+        );
+        var b = await StationsHandler.CreateStationAsync(
+            adminClient,
+            $"{prefix}B",
+            facilityCode,
+            ct,
+            "Second bay"
+        );
 
         var stations = await StationsHandler.GetStationAsync(adminClient, includeInactive: false, ct);
 
@@ -37,8 +50,15 @@ public sealed class GetStationsTests(FhsApiFactory factory)
         var ct = TestContext.Current.CancellationToken;
         var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("ST");
+        var facilityCode = AppConstants.Data.DefaultFacilityCode;
 
-        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, "Retired bay");
+        var stationId = await StationsHandler.CreateStationAsync(
+            adminClient,
+            code,
+            facilityCode,
+            ct,
+            "Retired bay"
+        );
         await StationsHandler.DecommissionStationAsync(adminClient, stationId, ct);
 
         var active = await StationsHandler.GetStationAsync(adminClient, includeInactive: false, ct);

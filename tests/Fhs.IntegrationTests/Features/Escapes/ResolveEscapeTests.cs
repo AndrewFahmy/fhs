@@ -3,11 +3,11 @@ using System.Net.Http.Json;
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
 using FHS.Api.Features.Escapes;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Escapes;
+namespace FHS.IntegrationTests.Features.Escapes;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class ResolveEscapeTests(FhsApiFactory factory)
@@ -43,10 +43,10 @@ public sealed class ResolveEscapeTests(FhsApiFactory factory)
                 errorCodeId,
                 "Paint run found at customer",
                 Severity.Major,
-                AppConstants.Data.LineOperatorActorId,
+                TestData.LineOperatorActorId,
                 ReportedAt: reportedAt,
                 Resolution: "Replacement shipped and root cause contained",
-                ResolvedBy: AppConstants.Data.LineOperatorActorId,
+                ResolvedBy: TestData.LineOperatorActorId,
                 ResolvedAt: resolvedAt
             ),
             EscapeSnapshot.From(escape)
@@ -58,7 +58,7 @@ public sealed class ResolveEscapeTests(FhsApiFactory factory)
                     new EscapeReported(escapeId, customerId, errorCodeId, Severity.Major, reportedAt)
                 ),
                 OutboxMessageSnapshot.For(
-                    new EscapeResolved(escapeId, AppConstants.Data.LineOperatorActorId, resolvedAt)
+                    new EscapeResolved(escapeId, TestData.LineOperatorActorId, resolvedAt)
                 )
             ],
             [.. (await factory.OutboxForAsync(escapeId, ct)).Select(OutboxMessageSnapshot.From)]

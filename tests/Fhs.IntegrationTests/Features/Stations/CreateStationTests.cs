@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using FHS.Api.Data.Entities;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
-using Fhs.IntegrationTests.Snapshots;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Snapshots;
 
-namespace Fhs.IntegrationTests.Features.Stations;
+namespace FHS.IntegrationTests.Features.Stations;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class CreateStationTests(FhsApiFactory factory)
@@ -19,8 +19,9 @@ public sealed class CreateStationTests(FhsApiFactory factory)
         var adminClient = factory.CreateAdminClient();
         var code = adminClient.UniqueCode("ST");
         var name = $"{code} assembly bay";
+        var facilityCode = AppConstants.Data.DefaultFacilityCode;
 
-        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, ct, name);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, facilityCode, ct, name);
 
         // The 409 is the assertion: only a persisted row can collide.
         var duplicate = await adminClient.PostAsJsonAsync(CreateStationEndpoint, new { code, name }, ct);
@@ -72,5 +73,47 @@ public sealed class CreateStationTests(FhsApiFactory factory)
         var response = await client.PostAsJsonAsync(CreateStationEndpoint, new { code, name = code }, ct);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Binds_the_station_to_the_facility_it_names()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = factory.CreateAdminClient();
+        var facilityCode = adminClient.UniqueCode("FAC");
+        var code = adminClient.UniqueCode("ST");
+
+        var facilityId = await FacilitiesHandler.CreateFacilityAsync(adminClient, facilityCode, ct);
+        var stationId = await StationsHandler.CreateStationAsync(adminClient, code, facilityCode, ct);
+
+        var station = await factory.FindAsync<Station>(stationId, ct);
+
+        Assert.NotNull(station);
+        Assert.Equal(facilityId, station.FacilityId);
+    }
+
+    [Fact]
+    public async Task Rejects_a_station_for_an_unknown_facility()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var adminClient = factory.CreateAdminClient();
+        var code = adminClient.UniqueCode("ST");
+        var facilityCode = adminClient.UniqueCode("FAC");
+
+        var response = await adminClient.PostAsJsonAsync(
+            CreateStationEndpoint,
+            new
+            {
+                code,
+                facilityCode,
+                name = code
+            },
+            ct
+        );
+
+        Assert.Equal(
+            new ProblemSnapshot(HttpStatusCode.NotFound, "Stations.FacilityNotFound"),
+            await ProblemSnapshot.FromAsync(response, ct)
+        );
     }
 }

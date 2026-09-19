@@ -1,7 +1,7 @@
 using FHS.Api.Data.Entities;
-using Fhs.IntegrationTests.Interfaces;
+using FHS.IntegrationTests.Interfaces;
 
-namespace Fhs.IntegrationTests.Snapshots;
+namespace FHS.IntegrationTests.Snapshots;
 
 internal sealed record CustomerSnapshot(string Code, string Name, bool IsActive) : ISnapshotModel
 {

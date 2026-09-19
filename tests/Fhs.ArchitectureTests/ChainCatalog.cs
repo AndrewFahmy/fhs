@@ -3,7 +3,7 @@ using FHS.Api.Interfaces;
 using FHS.Chain;
 using FHS.Chain.Contracts;
 
-namespace Fhs.ArchitectureTests;
+namespace FHS.ArchitectureTests;
 
 internal sealed record DeclaredChain(string Endpoint, string Name, IReadOnlyList<LinkDescriptor> Links);
 

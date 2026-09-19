@@ -1,4 +1,4 @@
-namespace Fhs.IntegrationTests.Extensions;
+namespace FHS.IntegrationTests.Extensions;
 
 internal static class TestFactoryExtensions
 {
@@ -6,6 +6,6 @@ internal static class TestFactoryExtensions
     {
         public HttpClient CreateAdminClient() => factory.CreateClientAs(AppConstants.Data.AdminSubjectId, AppConstants.Auth.AdminRole);
 
-        public HttpClient CreateLineOperatorClient() => factory.CreateClientAs(AppConstants.Data.LineOperatorSubjectId);
+        public HttpClient CreateLineOperatorClient() => factory.CreateClientAs(TestData.LineOperatorSubjectId);
     }
 }

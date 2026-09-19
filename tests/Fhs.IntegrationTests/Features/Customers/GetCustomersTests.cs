@@ -1,8 +1,8 @@
 using FHS.Api.Features.Customers;
-using Fhs.IntegrationTests.Extensions;
-using Fhs.IntegrationTests.Handlers;
+using FHS.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Handlers;
 
-namespace Fhs.IntegrationTests.Features.Customers;
+namespace FHS.IntegrationTests.Features.Customers;
 
 [Collection(nameof(FhsApiCollection))]
 public sealed class GetCustomersTests(FhsApiFactory factory)

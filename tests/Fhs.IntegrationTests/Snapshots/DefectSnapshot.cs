@@ -1,8 +1,8 @@
 using FHS.Api.Data.Entities;
 using FHS.Api.Enums;
-using Fhs.IntegrationTests.Interfaces;
+using FHS.IntegrationTests.Interfaces;
 
-namespace Fhs.IntegrationTests.Snapshots;
+namespace FHS.IntegrationTests.Snapshots;
 
 internal sealed record DefectSnapshot(
     Guid StationId,

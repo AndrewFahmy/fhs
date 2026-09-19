@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
 using FHS.Api.Enums;
 using FHS.Api.Features.ErrorCodes;
-using Fhs.IntegrationTests.Extensions;
+using FHS.IntegrationTests.Extensions;
 
-namespace Fhs.IntegrationTests.Handlers;
+namespace FHS.IntegrationTests.Handlers;
 
 internal static class ErrorCodesHandler
 {
